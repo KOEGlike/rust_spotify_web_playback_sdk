@@ -2,10 +2,10 @@ use nestify::*;
 use serde::{Deserialize, Serialize};
 
 pub mod event_cb_types {
-    pub type ReadyCb = fn(super::WebPlaybackPlayer);
-    pub type NotReadyCb = fn(super::WebPlaybackPlayer);
-    pub type PlayerStateChangedCb = fn(super::StateChange);
-    pub type AutoplayFailedCb = fn();
+    pub type ReadyCb = &'static fn(super::WebPlaybackPlayer);
+    pub type NotReadyCb = &'static fn(super::WebPlaybackPlayer);
+    pub type PlayerStateChangedCb = &'static fn(super::StateChange);
+    pub type AutoplayFailedCb = &'static fn();
 }
 
 #[derive( Debug)]

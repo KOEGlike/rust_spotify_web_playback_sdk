@@ -33,10 +33,11 @@ pub fn disconnect() {
 pub fn add_listener(event: Events) -> bool {
     match event {
         Events::Ready(cb) => {
-            let cb_js =
-                &Closure::new(
+            let closure = Closure::new(
                     move |js_value| cb(serde_wasm_bindgen::from_value(js_value).unwrap()),
                 );
+            let cb_js =
+                &closure;
             js_wrapper::addListenerWithParam("ready".to_string(), cb_js)
         }
         Events::NotReady(cb) => {

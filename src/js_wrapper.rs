@@ -1,7 +1,7 @@
 use js_sys::Promise;
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen(module = "/src/spotify_playback_sdk/wrapper.js")]
+#[wasm_bindgen(module = "/src/wrapper.js")]
 extern "C" {
     #[wasm_bindgen]
     pub fn init(cb:&Closure<dyn FnMut()->String>);

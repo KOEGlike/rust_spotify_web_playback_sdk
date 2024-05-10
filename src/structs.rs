@@ -1,18 +1,19 @@
-use serde::{Deserialize, Serialize};
 use nestify::*;
+use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug)]
-pub enum Events<A, B, C, D>
-where
-    A: Fn(WebPlaybackPlayer) + 'static,
-    B: Fn(WebPlaybackPlayer) + 'static,
-    C: Fn(StateChange) + 'static,
-    D: Fn() + 'static,
-{
-    Ready(A),
-    NotReady(B),
-    PlayerStateChanged(C),
-    AutoplayFailed(D),
+pub mod event_cb_types {
+    pub type ReadyCb = fn(super::WebPlaybackPlayer);
+    pub type NotReadyCb = fn(super::WebPlaybackPlayer);
+    pub type PlayerStateChangedCb = fn(super::StateChange);
+    pub type AutoplayFailedCb = fn();
+}
+
+#[derive( Debug)]
+pub enum Events {
+    Ready(event_cb_types::ReadyCb),
+    NotReady(event_cb_types::NotReadyCb),
+    PlayerStateChanged(event_cb_types::PlayerStateChangedCb),
+    AutoplayFailed(event_cb_types::AutoplayFailedCb),
 }
 
 #[derive(Serialize, Deserialize, Debug)]

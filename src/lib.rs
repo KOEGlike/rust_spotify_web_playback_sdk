@@ -6,14 +6,8 @@ mod structs;
 pub use js_wrapper::init;
 pub use structs::*;
 
-impl<A, B, C, D> From<Events<A, B, C, D>> for &str
-where
-    A: Fn(WebPlaybackPlayer) + 'static,
-    B: Fn(WebPlaybackPlayer) + 'static,
-    C: Fn(StateChange) + 'static,
-    D: Fn() + 'static,
-{
-    fn from(val: Events<A, B, C, D>) -> Self {
+impl From<Events> for &str {
+    fn from(val: Events) -> Self {
         match val {
             Events::Ready(_) => "ready",
             Events::NotReady(_) => "not_ready",
@@ -22,8 +16,6 @@ where
         }
     }
 }
-
-#[allow(dead_code)]
 
 pub async fn connect() -> Result<bool, JsValue> {
     let promise = js_wrapper::connect();
@@ -38,13 +30,7 @@ pub fn disconnect() {
     js_wrapper::disconnect();
 }
 
-pub fn add_listener<A, B, C, D>(event: Events<A, B, C, D>) -> bool
-where
-    A: Fn(WebPlaybackPlayer) + 'static,
-    B: Fn(WebPlaybackPlayer) + 'static,
-    C: Fn(StateChange) + 'static,
-    D: Fn() + 'static,
-{
+pub fn add_listener(event: Events) -> bool {
     match event {
         Events::Ready(cb) => {
             let cb_js =
@@ -74,13 +60,7 @@ where
     }
 }
 
-pub fn remove_specific_listener<A, B, C, D>(event: Events<A, B, C, D>) -> bool
-where
-    A: Fn(WebPlaybackPlayer),
-    B: Fn(WebPlaybackPlayer),
-    C: Fn(StateChange),
-    D: Fn(),
-{
+pub fn remove_specific_listener(event: Events) -> bool {
     match event {
         Events::Ready(_) => todo!(),
         Events::NotReady(_) => todo!(),
@@ -89,13 +69,7 @@ where
     }
 }
 
-pub fn remove_listener<A, B, C, D>(event: Events<A, B, C, D>) -> bool
-where
-    A: Fn(WebPlaybackPlayer),
-    B: Fn(WebPlaybackPlayer),
-    C: Fn(StateChange),
-    D: Fn(),
-{
+pub fn remove_listener(event: Events) -> bool {
     match event {
         Events::Ready(_) => todo!(),
         Events::NotReady(_) => todo!(),

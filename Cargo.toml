@@ -1,5 +1,5 @@
 [package]
-name = "spotify_web_playback_SDK"
+name = "rust_spotify_web_playback_sdk"
 version = "0.1.0"
 edition = "2021"
 

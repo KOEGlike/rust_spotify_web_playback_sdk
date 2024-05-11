@@ -1,5 +1,6 @@
 use nestify::*;
 use serde::{Deserialize, Serialize};
+use wasm_bindgen::JsValue;
 
 
 
@@ -9,6 +10,13 @@ use serde::{Deserialize, Serialize};
 pub struct WebPlaybackPlayer {
     device_id: String,
 }
+
+impl From<JsValue> for WebPlaybackPlayer {
+    fn from(value: JsValue) -> Self {
+        serde_wasm_bindgen::from_value(value).unwrap()
+    }
+}
+
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct WebPlaybackError {}
@@ -112,4 +120,10 @@ pub struct StateChange {
     position: i32,
     duration: i32,
     track_window: WebPlaybackTrack,
+}
+
+impl From<JsValue> for StateChange {
+    fn from(value: JsValue) -> Self {
+        serde_wasm_bindgen::from_value(value).unwrap()
+    }
 }

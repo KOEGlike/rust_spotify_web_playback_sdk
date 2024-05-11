@@ -14,7 +14,7 @@ extern "C" {
     pub fn disconnect();
 
     #[wasm_bindgen( js_name=addListener, js_namespace=player)]
-    pub fn addListenerWithParam(event: String, callback: &Closure<dyn FnMut(JsValue)>) -> bool;
+    pub fn add_listener(event: String, callback: &Closure<dyn FnMut(JsValue)>) -> bool;
 
     #[wasm_bindgen( js_name=addListener, js_namespace=player)]
     pub fn addListenerAutoplayFailed(event: String, callback: &Closure<dyn FnMut()>) -> bool;

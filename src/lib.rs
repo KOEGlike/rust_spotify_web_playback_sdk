@@ -4,7 +4,8 @@ use wasm_bindgen_futures::JsFuture;
 
 mod js_wrapper;
 mod structs;
-pub use js_wrapper::{init, add_listener};
+use crate::structs::web_playback::State;
+pub use js_wrapper::init;
 pub use structs::*;
 
 pub async fn connect() -> Result<bool, JsValue> {
@@ -20,28 +21,34 @@ pub fn disconnect() {
     js_wrapper::disconnect();
 }
 
-
-pub fn remove_specific_listener(event: &str) -> bool {
+pub fn add_listener(event: &str, callback: &Closure<dyn FnMut(JsValue)>) -> bool {
     match event {
-        "ready" => todo!(),
-        "not_ready" => todo!(),
-        "player_state_change" => todo!(),
-        "autoplay_failed" => todo!(),
-        _=>false
+        "ready" | "not_ready" | "player_state_changed" | "autoplay_failed" => {
+            js_wrapper::addListener(event.to_string(), callback)
+        }
+        _ => false,
+    }
+}
+
+pub fn remove_specific_listener(event: &str , callback: &Closure<dyn FnMut(JsValue)>) -> bool {
+    match event {
+        "ready" | "not_ready" | "player_state_changed" | "autoplay_failed" => {
+            js_wrapper::removeSpecificListener(event.to_string(), callback)
+        }
+        _ => false,
     }
 }
 
 pub fn remove_listener(event: &str) -> bool {
     match event {
-        "ready" => todo!(),
-        "not_ready" => todo!(),
-        "player_state_change" => todo!(),
-        "autoplay_failed" => todo!(),
-        _=>false
+        "ready" | "not_ready" | "player_state_change" | "autoplay_failed" => {
+            js_wrapper::removeListener(event.to_string())
+        }
+        _ => false,
     }
 }
 
-pub async fn get_current_state() -> Result<Option<WebPlaybackState>, JsValue> {
+pub async fn get_current_state() -> Result<Option<State>, JsValue> {
     let promise = js_wrapper::getCurrentState();
     let result = JsFuture::from(promise).await?;
     if result.is_null() {

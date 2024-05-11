@@ -14,7 +14,7 @@ extern "C" {
     pub fn disconnect();
 
     #[wasm_bindgen( js_name=addListener, js_namespace=player)]
-    pub fn add_listener(event: String, callback: &Closure<dyn FnMut(JsValue)>) -> bool;
+    pub fn addListener(event: String, callback: &Closure<dyn FnMut(JsValue)>) -> bool;
 
     #[wasm_bindgen( js_name=addListener, js_namespace=player)]
     pub fn addListenerAutoplayFailed(event: String, callback: &Closure<dyn FnMut()>) -> bool;
@@ -22,11 +22,12 @@ extern "C" {
     #[wasm_bindgen( js_name=removeListener, js_namespace=player)]
     pub fn removeListener(event: String) -> bool;
 
+    #[wasm_bindgen( js_name=removeListener, js_namespace=player)]
+    pub fn removeSpecificListener(event: String, callback: &Closure<dyn FnMut(JsValue)>) -> bool;
+
     #[wasm_bindgen( js_name=on, js_namespace=player)]
     pub fn on(event: String) -> bool;
 
-    #[wasm_bindgen( js_name=removeListener, js_namespace=player)]
-    pub fn removeSpecificListener(event: String, callback: &Closure<dyn FnMut()>) -> bool;
 
     #[wasm_bindgen( js_name=getCurrentState, js_namespace=player)]
     pub fn getCurrentState() -> Promise;

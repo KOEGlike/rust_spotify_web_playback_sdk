@@ -1,20 +1,9 @@
 use nestify::*;
 use serde::{Deserialize, Serialize};
 
-pub mod event_cb_types {
-    pub type ReadyCb =  fn(super::WebPlaybackPlayer);
-    pub type NotReadyCb =  fn(super::WebPlaybackPlayer);
-    pub type PlayerStateChangedCb =  fn(super::StateChange);
-    pub type AutoplayFailedCb = fn();
-}
 
-#[derive( Debug, Clone, Copy)]
-pub enum Events {
-    Ready(event_cb_types::ReadyCb),
-    NotReady(event_cb_types::NotReadyCb),
-    PlayerStateChanged(event_cb_types::PlayerStateChangedCb),
-    AutoplayFailed(event_cb_types::AutoplayFailedCb),
-}
+
+
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct WebPlaybackPlayer {

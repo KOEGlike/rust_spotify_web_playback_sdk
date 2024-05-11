@@ -1,3 +1,4 @@
+#![feature(type_alias_impl_trait)]
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
@@ -5,17 +6,6 @@ mod js_wrapper;
 mod structs;
 pub use js_wrapper::init;
 pub use structs::*;
-
-impl From<Events> for &str {
-    fn from(val: Events) -> Self {
-        match val {
-            Events::Ready(_) => "ready",
-            Events::NotReady(_) => "not_ready",
-            Events::PlayerStateChanged(_) => "player_state_changed",
-            Events::AutoplayFailed(_) => "autoplay_failed",
-        }
-    }
-}
 
 pub async fn connect() -> Result<bool, JsValue> {
     let promise = js_wrapper::connect();
@@ -30,50 +20,48 @@ pub fn disconnect() {
     js_wrapper::disconnect();
 }
 
-pub fn add_listener(event: Events) -> bool {
+
+pub fn add_listener_for_ready(mut cb: impl FnMut(WebPlaybackPlayer) + 'static) -> bool {
+    let closure =
+        Closure::new(move |js_value| cb(serde_wasm_bindgen::from_value(js_value).unwrap()));
+    let cb_js = &closure;
+    js_wrapper::addListenerWithParam("ready".to_string(), cb_js)
+}
+
+pub fn add_listener_for_not_ready(mut cb: impl FnMut(WebPlaybackPlayer) + 'static) -> bool {
+    let cb_js =
+        &Closure::new(move |js_value| cb(serde_wasm_bindgen::from_value(js_value).unwrap()));
+    js_wrapper::addListenerWithParam("not_ready".to_string(), cb_js)
+}
+
+pub fn add_listener_for_player_state_changed(mut cb: impl FnMut(StateChange) + 'static) -> bool {
+    let cb_js =
+        &Closure::new(move |js_value| cb(serde_wasm_bindgen::from_value(js_value).unwrap()));
+    js_wrapper::addListenerWithParam("player_state_changed".to_string(), cb_js)
+}
+
+pub fn add_listener_for_autoplay_failed(cb: impl FnMut() + 'static) -> bool {
+    let cb_js = &Closure::new(cb);
+    js_wrapper::addListenerAutoplayFailed("autoplay_failed".to_string(), cb_js)
+}
+
+pub fn remove_specific_listener(event: &str) -> bool {
     match event {
-        Events::Ready(cb) => {
-            let closure =
-                Closure::new(move |js_value| cb(serde_wasm_bindgen::from_value(js_value).unwrap()));
-            let cb_js = &closure;
-            js_wrapper::addListenerWithParam("ready".to_string(), cb_js)
-        }
-        Events::NotReady(cb) => {
-            let cb_js =
-                &Closure::new(
-                    move |js_value| cb(serde_wasm_bindgen::from_value(js_value).unwrap()),
-                );
-            js_wrapper::addListenerWithParam("not_ready".to_string(), cb_js)
-        }
-        Events::PlayerStateChanged(cb) => {
-            let cb_js =
-                &Closure::new(
-                    move |js_value| cb(serde_wasm_bindgen::from_value(js_value).unwrap()),
-                );
-            js_wrapper::addListenerWithParam("player_state_changed".to_string(), cb_js)
-        }
-        Events::AutoplayFailed(cb) => {
-            let cb_js = &Closure::new(cb);
-            js_wrapper::addListenerAutoplayFailed("autoplay_failed".to_string(), cb_js)
-        }
+        "ready" => todo!(),
+        "not_ready" => todo!(),
+        "player_state_change" => todo!(),
+        "autoplay_failed" => todo!(),
+        _=>false
     }
 }
 
-pub fn remove_specific_listener(event: Events) -> bool {
+pub fn remove_listener(event: &str) -> bool {
     match event {
-        Events::Ready(_) => todo!(),
-        Events::NotReady(_) => todo!(),
-        Events::PlayerStateChanged(_) => todo!(),
-        Events::AutoplayFailed(_) => todo!(),
-    }
-}
-
-pub fn remove_listener(event: Events) -> bool {
-    match event {
-        Events::Ready(_) => todo!(),
-        Events::NotReady(_) => todo!(),
-        Events::PlayerStateChanged(_) => todo!(),
-        Events::AutoplayFailed(_) => todo!(),
+        "ready" => todo!(),
+        "not_ready" => todo!(),
+        "player_state_change" => todo!(),
+        "autoplay_failed" => todo!(),
+        _=>false
     }
 }
 

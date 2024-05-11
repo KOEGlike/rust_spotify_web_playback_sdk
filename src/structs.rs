@@ -8,7 +8,7 @@ pub mod event_cb_types {
     pub type AutoplayFailedCb = fn();
 }
 
-#[derive( Debug)]
+#[derive( Debug, Clone, Copy)]
 pub enum Events {
     Ready(event_cb_types::ReadyCb),
     NotReady(event_cb_types::NotReadyCb),

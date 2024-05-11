@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-web-sys = "0.3"
 js-sys = "0.3"
 wasm-bindgen-futures = "0.4"
 nestify = "0.3"

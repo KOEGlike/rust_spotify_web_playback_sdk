@@ -1,15 +1,17 @@
 let player;
 let oauth_cb;
-function init(oauth, on_ready) {
+function init(oauth, on_ready, name, volume, enableMediaSession) {
     oauth_cb=oauth;
     console.log("init")
     window.onSpotifyWebPlaybackSDKReady  = ()=>{
         player = new Spotify.Player({
-            name: 'wasm playback',
+            name: name,
             getOAuthToken: cb => { 
                 cb(oauth_cb());
                 console.log(oauth_cb());
-            }
+            },
+            volume: volume,
+            enableMediaSession: enableMediaSession
             
         });
         on_ready();

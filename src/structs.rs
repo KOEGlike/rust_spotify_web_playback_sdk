@@ -1,16 +1,16 @@
+pub fn from_js<T>(js_value: wasm_bindgen::JsValue) -> Result<T, serde_wasm_bindgen::Error>
+where
+    T: serde::de::DeserializeOwned,
+{
+    serde_wasm_bindgen::from_value(js_value)
+}
+
 pub mod web_playback {
     use nestify::*;
     use serde::{Deserialize, Serialize};
-    use wasm_bindgen::JsValue;
     #[derive(Serialize, Deserialize, Debug)]
     pub struct Player {
         pub device_id: String,
-    }
-
-    impl From<JsValue> for Player {
-        fn from(value: JsValue) -> Self {
-            serde_wasm_bindgen::from_value(value).unwrap()
-        }
     }
 
     #[derive(Serialize, Deserialize, Debug)]
@@ -114,12 +114,13 @@ pub mod web_playback {
 }
 
 pub mod state_change {
-    use crate::structs::web_playback::{Context, Track};
+    use crate::{structs::web_playback::Context, structs::web_playback::TrackWindow};
     use nestify::*;
     use serde::{Deserialize, Serialize};
-    use wasm_bindgen::JsValue;
+
     nest! {
         #[derive(Serialize, Deserialize, Debug)]
+        ///couldn't find any documentation for this js object, in the official docs it says that the event listener returns a WebPlaybackPlayer object, but in practice it returns this object
         pub struct StateChange {
             pub context: Context,
             pub disallows:
@@ -144,7 +145,7 @@ pub mod state_change {
                     pub playback_speed:
                         #[derive(Serialize, Deserialize, Debug)]
                         pub struct Speed {
-                            pub current: f32,
+                            pub current: i32,
                             pub restricted:bool,
                             pub selected: i32,
                         },
@@ -152,7 +153,7 @@ pub mod state_change {
                 },
             pub playback_id:String,
             pub playback_quality: String,
-            pub playback_speed:f32,
+            pub playback_speed:f64,
             pub position: i32,
             pub repeat_mode: i8,
             pub restrictions:
@@ -160,7 +161,7 @@ pub mod state_change {
                 pub struct Restrictions {
                     pub disallow_peeking_next_reasons: Vec<String>,
                     pub disallow_peeking_prev_reasons: Vec<String>,
-                    pub disallow_resuming_reasons: Vec<String>,
+                    //pub disallow_resuming_reasons: Vec<String>,
                     pub disallow_seeking_reasons: Vec<String>,
                     pub disallow_skipping_next_reasons: Vec<String>,
                     pub disallow_skipping_prev_reasons: Vec<String>,
@@ -170,14 +171,8 @@ pub mod state_change {
                     pub undefined:Vec<String>
                 },
             pub shuffle: bool,
-            pub timestamp: i128,
-            pub track_window: Track,
-        }
-    }
-
-    impl From<JsValue> for StateChange {
-        fn from(value: JsValue) -> Self {
-            serde_wasm_bindgen::from_value(value).unwrap()
+            pub timestamp: f64,
+            pub track_window: TrackWindow,
         }
     }
 }

@@ -1,13 +1,22 @@
-#![feature(type_alias_impl_trait)]
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
 mod js_wrapper;
-mod structs;
+pub mod structs;
 use crate::structs::web_playback::State;
 pub use js_wrapper::init;
-pub use structs::*;
+pub mod prelude{
+    pub use crate::{
+        *,
+        structs::{
+            web_playback::{State, Error, Player, Track},
+            state_change::StateChange
+        }
+    };
+}
 
+/// #Description Connect our Web Playback SDK instance to Spotify with the credentials provided during initialization.
+/// #Returns a Promise containing a Boolean (either true or false) with the success of the connection.
 pub async fn connect() -> Result<bool, JsValue> {
     let promise = js_wrapper::connect();
     let result = JsFuture::from(promise).await?;
@@ -17,37 +26,48 @@ pub async fn connect() -> Result<bool, JsValue> {
     }
 }
 
+/// #Closes the current session our Web Playback SDK has with Spotify.
 pub fn disconnect() {
     js_wrapper::disconnect();
 }
 
+
+fn event_check(event: &str) -> bool {
+    matches!(event, "ready" | "not_ready" | "player_state_changed" | "autoplay_failed" | "initialization_error"|"authentication_error"|"account_error"|"playback_error")
+}
+
+/// #Description Create a new event listener in the Web Playback SDK. Alias for Spotify.Player#on.
+/// #Response Returns a Boolean. Returns true if the event listener for the event_name is unique. See #removeListener for removing existing listeners.
 pub fn add_listener(event: &str, callback: &Closure<dyn FnMut(JsValue)>) -> bool {
-    match event {
-        "ready" | "not_ready" | "player_state_changed" | "autoplay_failed" => {
-            js_wrapper::addListener(event.to_string(), callback)
-        }
-        _ => false,
+    if event_check(event) {
+        js_wrapper::addListener(event.to_string(), callback)
+    } else {
+        false
     }
 }
 
+/// #Description Remove a specific event listener in the Web Playback SDK.
+/// #Response Returns a Boolean. Returns true if the event name is valid with registered callbacks from #addListener.
 pub fn remove_specific_listener(event: &str , callback: &Closure<dyn FnMut(JsValue)>) -> bool {
-    match event {
-        "ready" | "not_ready" | "player_state_changed" | "autoplay_failed" => {
-            js_wrapper::removeSpecificListener(event.to_string(), callback)
-        }
-        _ => false,
+    if event_check(event) {
+        js_wrapper::removeSpecificListener(event.to_string(), callback)
+    } else {
+        false
     }
 }
 
+/// #Description Remove an event listener in the Web Playback SDK.
+/// #Response Returns a Boolean. Returns true if the event name is valid with registered callbacks from #addListener.
 pub fn remove_listener(event: &str) -> bool {
-    match event {
-        "ready" | "not_ready" | "player_state_change" | "autoplay_failed" => {
-            js_wrapper::removeListener(event.to_string())
-        }
-        _ => false,
+    if event_check(event) {
+        js_wrapper::removeListener(event.to_string())
+    } else {
+        false
     }
 }
 
+/// #Description Collect metadata on local playback.
+/// #Response Returns a Promise. It will return either a WebPlaybackState object or null depending on if the user is successfully connected.
 pub async fn get_current_state() -> Result<Option<State>, JsValue> {
     let promise = js_wrapper::getCurrentState();
     let result = JsFuture::from(promise).await?;
@@ -115,4 +135,8 @@ pub async fn next_track() -> Result<(), JsValue> {
 
 pub fn activate_element() {
     js_wrapper::activateElement();
+}
+
+pub fn on(event: &str, callback: &Closure<dyn FnMut(JsValue)>) -> bool{
+    add_listener(event, callback)
 }

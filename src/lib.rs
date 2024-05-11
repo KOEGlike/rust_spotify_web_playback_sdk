@@ -34,11 +34,11 @@ pub fn add_listener_for_not_ready(mut cb: impl FnMut(WebPlaybackPlayer) + 'stati
     js_wrapper::addListenerWithParam("not_ready".to_string(), cb_js)
 }
 
-pub fn add_listener_for_player_state_changed(cb: fn(WebPlaybackState)) -> bool 
+pub fn add_listener_for_player_state_changed(cb: &Closure<dyn FnMut(JsValue)>) -> bool 
 {
-    let cb_js =
-        &Closure::new(move |js_value| cb(serde_wasm_bindgen::from_value(js_value).unwrap()));
-    js_wrapper::addListenerWithParam("player_state_changed".to_string(), cb_js)
+    //let cb_js =
+    //    &Closure::new(move |js_value| cb(serde_wasm_bindgen::from_value(js_value).unwrap()));
+    js_wrapper::addListenerWithParam("player_state_changed".to_string(), cb)
 }
 
 pub fn add_listener_for_autoplay_failed(cb: impl FnMut() + 'static) -> bool {

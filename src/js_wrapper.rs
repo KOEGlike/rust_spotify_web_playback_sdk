@@ -4,7 +4,7 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen(module = "/src/wrapper.js")]
 extern "C" {
     #[wasm_bindgen]
-    pub fn init(cb:&Closure<dyn FnMut()->String>);
+    pub fn init(oauth:&Closure<dyn FnMut()->String>, on_ready:&Closure<dyn FnMut()>);
     //pub fn init(cb: &mut dyn FnMut() -> String);
     
     #[wasm_bindgen( js_name=connect, js_namespace=player)]

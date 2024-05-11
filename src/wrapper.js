@@ -1,9 +1,10 @@
 let player;
 let oauth_cb;
-function init(cb) {
-    oauth_cb=cb;
+function init(oauth, on_ready) {
+    oauth_cb=oauth;
     console.log("init")
     window.onSpotifyWebPlaybackSDKReady  = ()=>{
+        on_ready();
         player = new Spotify.Player({
             name: 'Web Playback SDK Quick Start Player',
             getOAuthToken: cb => { 

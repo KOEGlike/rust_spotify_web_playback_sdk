@@ -74,7 +74,7 @@ fn HomePage() -> impl IntoView {
             <button  on:click=move |_| get_state.dispatch(())>
                 "state"
             </button>
-            <p>"Current song: " {current_song_name()}</p>
+            <p>"Current song: " {move || current_song_name()}</p>
         </Suspense>
     }
 }

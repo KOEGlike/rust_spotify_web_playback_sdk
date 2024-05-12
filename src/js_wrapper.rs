@@ -57,6 +57,6 @@ extern "C" {
     pub fn nextTrack() -> Promise;
 
     #[wasm_bindgen( js_name=activateElement, js_namespace=player)]
-    pub fn activateElement();
+    pub fn activateElement() -> Promise;
 
 }

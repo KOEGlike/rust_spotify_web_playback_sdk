@@ -365,11 +365,12 @@ pub async fn next_track() -> Result<(), JsValue> {
 ///
 /// # Response
 /// Returns an empty Promise
-pub fn activate_element() -> Result<(), JsValue>{
+pub async fn activate_element() -> Result<(), JsValue>{
     if !js_wrapper::player_ready() {
         return Err(JsValue::from_str("player not ready"));
     }
-    js_wrapper::activateElement();
+    let promise=js_wrapper::activateElement();
+    JsFuture::from(promise).await?;
     Ok(())
 }
 

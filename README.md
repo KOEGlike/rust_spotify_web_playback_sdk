@@ -1,7 +1,7 @@
 # A wrapper around the Spotify web playback SDK for targeting wasm with rust
 ## All the methods now are functions
 Because you only can have only 1 player per page, so there is no need for an explicit class, rust calls all the methods of the class  through JS
-**Use the `init` function first** this function adds the script to the document, and creates an instance of the `Spotifi.Player` class, if you don't call this function all the other functions will be useless
+**Use the `init` function first** this function adds the script to the document, and creates an instance of the `Spotify.Player` class, if you don't call this function all the other functions will be useless
 ## [Docs](https://there.is.none.right.now)
 ## [Repo](https://github.com/KOEGlike/rust_spotify_web_playback_sdk)
 
@@ -12,7 +12,7 @@ use rust_spotify_web_playback_sdk as sp;
 fn HomePage() -> impl IntoView {
     let (is_sp_ready, set_is_sp_ready) = create_signal(false);
     if cfg!(any(target_arch = "wasm32", target_arch = "wasm64")) {
-        let token="BQDTd92HRscBbveUPGqAL1WNd0RaFTMC5ctC64eDMo0txTZnkeWdzf-okCSJ8YAYCp4fvm-JuZXB3sl1PJk1I4JpFzsZ_kzZa8Rt_DX5SdHpeUVxoWAZFO_8ATVVp0Ix86N83nXiZJpf5-GBLvjaA_HDGu05j9PfvjWy1-630mhTcj_N4BN5fSX3idngPEMgpooXyVRILH9WYO-fXUs5M7xIZdn4";
+        let token="[Your token goes here]";
         let oauth_cb = || {
             log!("oauth was called");
             token.to_string()

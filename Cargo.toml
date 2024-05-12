@@ -7,6 +7,7 @@ repository = "https://github.com/KOEGlike/rust_spotify_web_playback_sdk"
 license = "MIT OR Apache-2.0"
 keywords = ["Spotify", "SDK", "web", "wrapper", "wasm"]
 description = "a wrapper around the spotify Web Playback SDK for wasm porjects "
+documentation = "https://docs.rs/rust_spotify_web_playback_sdk/"
 
 [dependencies]
 js-sys = "0.3"

@@ -161,7 +161,7 @@ pub mod state_change {
                 pub struct Restrictions {
                     pub disallow_peeking_next_reasons: Vec<String>,
                     pub disallow_peeking_prev_reasons: Vec<String>,
-                    //pub disallow_resuming_reasons: Vec<String>,
+                    pub disallow_resuming_reasons: Vec<String>,
                     pub disallow_seeking_reasons: Vec<String>,
                     pub disallow_skipping_next_reasons: Vec<String>,
                     pub disallow_skipping_prev_reasons: Vec<String>,

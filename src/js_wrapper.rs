@@ -3,10 +3,11 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(module = "/src/wrapper.js")]
 extern "C" {
-    ///this function adds the script to the document, and creates an instance of the Spotify.Player class, if you don't call this function all the other functions will be useless
     #[wasm_bindgen]
-    pub fn init(oauth:&Closure<dyn FnMut()->String>, on_ready:&Closure<dyn FnMut()>,name:String, volume:f32, enableMediaSession:bool);
+    pub fn init(oauth:&Closure<dyn FnMut()->String>, on_ready:&Closure<dyn FnMut()>,name:String, volume:f32, enable_media_session:bool);
     
+    #[wasm_bindgen]
+    pub fn player_ready() -> bool;
     #[wasm_bindgen( js_name=connect, js_namespace=player)]
     pub fn connect() -> Promise;
 

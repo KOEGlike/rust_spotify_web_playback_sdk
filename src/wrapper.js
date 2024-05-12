@@ -1,4 +1,4 @@
-let player;
+let player="not ready";
 let oauth_cb;
 function init(oauth, on_ready, name, volume, enableMediaSession) {
     oauth_cb=oauth;
@@ -21,7 +21,13 @@ function init(oauth, on_ready, name, volume, enableMediaSession) {
     document.head.appendChild(script);
 }
 
+function player_ready() {
+    if(player==="not ready")
+        return false;
+    return true;
+}
 
 
-export {init , player}
+
+export {player_ready,init , player}
 

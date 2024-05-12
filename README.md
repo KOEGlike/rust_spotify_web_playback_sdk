@@ -12,7 +12,7 @@ use rust_spotify_web_playback_sdk as sp;
 fn HomePage() -> impl IntoView {
     let (is_sp_ready, set_is_sp_ready) = create_signal(false);
     if cfg!(any(target_arch = "wasm32", target_arch = "wasm64")) {
-        let token="BQDTd92HRscBbveUPGqAL1WNd0RaFTMC5ctC64eDMo0txTZnkeWdzf-okCSJ8YAYCp4fvm-JuZXB3sl1PJk1I4JpFzsZ_kzZa8Rt_DX5SdHpeUVxoWAZFO_8ATVVp0Ix86N83nXiZJpf5-GBLvjaA_HDGu05j9PfvjWy1-630mhTcj_N4BN5fSX3idngPEMgpooXyVRILH9WYO-fXUs5M7xIZdn4";
+        let token="[Your token goes here]";
         let oauth_cb = || {
             log!("oauth was called");
             token.to_string()

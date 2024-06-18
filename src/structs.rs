@@ -1,5 +1,8 @@
 use std::{cell::RefCell, rc::Rc};
 
+use state_change::StateChange;
+use web_playback::Player;
+
 pub fn from_js<T>(js_value: wasm_bindgen::JsValue) -> Result<T, serde_wasm_bindgen::Error>
 where
     T: serde::de::DeserializeOwned,
@@ -9,32 +12,31 @@ where
 
 pub type Cb<T> = Rc<RefCell<dyn FnMut(Result<T, serde_wasm_bindgen::Error>)>>;
 
-
 #[derive(Clone)]
-pub enum Events {
-    Ready(Cb<web_playback::Player>),
-    NotReady(Cb<web_playback::Player>),
-    PlayerStateChanged(Cb<state_change::StateChange>),
-    AutoplayFailed(Rc<RefCell<dyn FnMut()>>),
-    InitializationError(Cb<web_playback::Error>),
-    AuthenticationError(Cb<web_playback::Error>),
-    AccountError(Cb<web_playback::Error>),
-    PlaybackError(Cb<web_playback::Error>),
+pub enum Events
+{
+    Ready,
+    NotReady,
+    PlayerStateChanged,
+    AutoplayFailed,
+    InitializationError,
+    AuthenticationError,
+    AccountError,
+    PlaybackError,
 }
 
 impl From<Events> for &str {
     fn from(val: Events) -> Self {
         match val {
-            Events::Ready(_) => "ready",
-            Events::NotReady(_) => "not_ready",
-            Events::PlayerStateChanged(_) => "player_state_changed",
-            Events::AutoplayFailed(_) => "autoplay_failed",
-            Events::InitializationError(_) => "initialization_error",
-            Events::AuthenticationError(_) => "authentication_error",
-            Events::AccountError(_) => "account_error",
-            Events::PlaybackError(_) => "playback_error",
+            Events::Ready => "ready",
+            Events::NotReady => "not_ready",
+            Events::PlayerStateChanged => "player_state_changed",
+            Events::AutoplayFailed => "autoplay_failed",
+            Events::InitializationError => "initialization_error",
+            Events::AuthenticationError => "authentication_error",
+            Events::AccountError => "account_error",
+            Events::PlaybackError => "playback_error",
         }
-    
     }
 }
 

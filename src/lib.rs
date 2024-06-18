@@ -109,19 +109,13 @@ pub mod prelude {
 /// * `volume` - A Float containing the initial volume of the player.
 /// * `enableMediaSession` - A Boolean indicating whether to enable media session support.
 ///
-pub fn init(
-    oauth: Rc<RefCell<dyn FnMut() -> String>>,
-    on_ready: Rc<RefCell<dyn FnMut()>>,
-    name: &str,
-    volume: f32,
-    enable_media_session: bool,
-) {
-    let oauth =  Closure::wrap(Box::new(move || {
-        return oauth.borrow_mut()();
-    }) as Box<dyn FnMut() -> String>);
-    let on_ready =  Closure::wrap(Box::new(move || {
-        on_ready.borrow_mut()();
-    }) as Box<dyn FnMut()>);
+pub fn init<T, F>(oauth: T, on_ready: F, name: &str, volume: f32, enable_media_session: bool)
+where
+    T: FnMut() -> String + 'static,
+    F: FnMut() + 'static,
+{
+    let oauth = Closure::wrap(Box::new(oauth) as Box<dyn FnMut() -> String>);
+    let on_ready = Closure::wrap(Box::new(on_ready) as Box<dyn FnMut()>);
     js_wrapper::init(&oauth, &on_ready, name.into(), volume, enable_media_session);
 }
 
@@ -177,45 +171,59 @@ use structs::Events;
 /// * `callback` - A callback function to be fired when the event has been executed.
 use wasm_bindgen::closure::Closure;
 
-pub fn add_listener(event: structs::Events) -> Result<(), JsValue>
-{
+#[macro_export]
+macro_rules! add_listener {
+    ($event:expr, $cb:expr) => {
+        match $event {
+            Events::Ready | Events::NotReady  => {
+                let test: Box<dyn FnMut() + 'static> = Box::new($cb);
+                
+            },
+            Events::PlayerStateChanged => {
+                let test: Box<dyn FnMut($crate::structs::state_change::StateChange) + 'static> = Box::new($cb);
+                
+            },
+            Events::InitializationError | Events::AuthenticationError | Events::AccountError | Events::PlaybackError => {
+                let test: Box<dyn FnMut($crate::structs::web_playback::Error) + 'static> = Box::new($cb);
+                
+            },
+            Events::AutoplayFailed => {
+                let test: Box<dyn FnMut() + 'static> = Box::new($cb);
+            }
+        }
+    };
+}
+
+pub fn add_listener(event: structs::Events) -> Result<(), JsValue> {
     if !js_wrapper::player_ready() {
         return Err(JsValue::from_str("player not ready"));
     }
 
-    let event_str:&str= event.clone().into();
+    let event_str: &str = event.clone().into();
 
     let closure = match event {
-        Events::Ready(cb) | Events::NotReady(cb) => {
-            Closure::wrap(Box::new(move |jsv: JsValue| {
-                let state = structs::from_js(jsv);
-                cb.borrow_mut()(state);
-            }) as Box<dyn FnMut(JsValue)>)
-        },
-        Events::PlayerStateChanged(cb) => {
-            Closure::wrap(Box::new(move |jsv: JsValue| {
-                let state = structs::from_js(jsv);
-                cb.borrow_mut()(state);
-            }) as Box<dyn FnMut(JsValue)>)
-        },
-        Events::AutoplayFailed(cb) => {
-            Closure::wrap(Box::new(move |_: JsValue| {
-                cb.borrow_mut()();
-            }) as Box<dyn FnMut(JsValue)>)
-        },
+        Events::Ready(cb) | Events::NotReady(cb) => Closure::wrap(Box::new(move |jsv: JsValue| {
+            let state = structs::from_js(jsv);
+            cb.borrow_mut()(state);
+        })
+            as Box<dyn FnMut(JsValue)>),
+        Events::PlayerStateChanged(cb) => Closure::wrap(Box::new(move |jsv: JsValue| {
+            let state = structs::from_js(jsv);
+            cb.borrow_mut()(state);
+        }) as Box<dyn FnMut(JsValue)>),
+        Events::AutoplayFailed(cb) => Closure::wrap(Box::new(move |_: JsValue| {
+            cb.borrow_mut()();
+        }) as Box<dyn FnMut(JsValue)>),
         Events::InitializationError(cb)
         | Events::AuthenticationError(cb)
         | Events::AccountError(cb)
-        | Events::PlaybackError(cb) => {
-            Closure::wrap(Box::new(move |jsv: JsValue| {
-                let state = structs::from_js(jsv);
-                cb.borrow_mut()(state);
-            }) as Box<dyn FnMut(JsValue)>)
-        },
+        | Events::PlaybackError(cb) => Closure::wrap(Box::new(move |jsv: JsValue| {
+            let state = structs::from_js(jsv);
+            cb.borrow_mut()(state);
+        }) as Box<dyn FnMut(JsValue)>),
     };
 
-    
-    let result=js_wrapper::addListener(event_str.into(), &closure);
+    let result = js_wrapper::addListener(event_str.into(), &closure);
     closure.forget(); // This is necessary to prevent Rust from cleaning up the closure
 
     if result {

@@ -80,6 +80,9 @@
 //! }
 //! ```
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
@@ -92,6 +95,7 @@ pub mod prelude {
         structs::{
             state_change::StateChange,
             web_playback::{Error, Player, State, Track},
+            Events,
         },
         *,
     };
@@ -106,13 +110,19 @@ pub mod prelude {
 /// * `enableMediaSession` - A Boolean indicating whether to enable media session support.
 ///
 pub fn init(
-    oauth: &Closure<dyn FnMut() -> String>,
-    on_ready: &Closure<dyn FnMut()>,
-    name: String,
+    oauth: Rc<RefCell<dyn FnMut() -> String>>,
+    on_ready: Rc<RefCell<dyn FnMut()>>,
+    name: &str,
     volume: f32,
     enable_media_session: bool,
 ) {
-    js_wrapper::init(oauth, on_ready, name, volume, enable_media_session);
+    let oauth =  Closure::wrap(Box::new(move || {
+        return oauth.borrow_mut()();
+    }) as Box<dyn FnMut() -> String>);
+    let on_ready =  Closure::wrap(Box::new(move || {
+        on_ready.borrow_mut()();
+    }) as Box<dyn FnMut()>);
+    js_wrapper::init(&oauth, &on_ready, name.into(), volume, enable_media_session);
 }
 
 /// Connect our Web Playback SDK instance to Spotify with the credentials provided during initialization.
@@ -205,10 +215,14 @@ pub fn add_listener(event: structs::Events) -> Result<(), JsValue>
     };
 
     
-    js_wrapper::addListener(event_str.into(), &closure);
+    let result=js_wrapper::addListener(event_str.into(), &closure);
     closure.forget(); // This is necessary to prevent Rust from cleaning up the closure
 
-    Ok(())
+    if result {
+        Ok(())
+    } else {
+        Err(JsValue::from_str("event not found"))
+    }
 }
 
 /// Remove a specific event listener in the Web Playback SDK.

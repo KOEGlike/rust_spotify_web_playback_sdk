@@ -7,7 +7,7 @@ where
     serde_wasm_bindgen::from_value(js_value)
 }
 
-type Cb<T> = Rc<RefCell<dyn FnMut(Result<T, serde_wasm_bindgen::Error>)>>;
+pub type Cb<T> = Rc<RefCell<dyn FnMut(Result<T, serde_wasm_bindgen::Error>)>>;
 
 
 #[derive(Clone)]
@@ -22,9 +22,9 @@ pub enum Events {
     PlaybackError(Cb<web_playback::Error>),
 }
 
-impl Into<&str> for Events {
-    fn into(self) -> &'static str {
-        match self {
+impl From<Events> for &str {
+    fn from(val: Events) -> Self {
+        match val {
             Events::Ready(_) => "ready",
             Events::NotReady(_) => "not_ready",
             Events::PlayerStateChanged(_) => "player_state_changed",

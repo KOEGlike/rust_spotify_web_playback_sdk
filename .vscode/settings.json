@@ -2,5 +2,6 @@
     "cSpell.words": [
         "hifi",
         "nestify"
-    ]
+    ],
+    "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
 }

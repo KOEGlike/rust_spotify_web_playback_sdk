@@ -105,11 +105,15 @@ pub mod prelude {
 /// * `volume` - A Float containing the initial volume of the player.
 /// * `enableMediaSession` - A Boolean indicating whether to enable media session support.
 ///
-pub fn init(oauth:&Closure<dyn FnMut()->String>, on_ready:&Closure<dyn FnMut()>,name:String, volume:f32, enable_media_session:bool) {
+pub fn init(
+    oauth: &Closure<dyn FnMut() -> String>,
+    on_ready: &Closure<dyn FnMut()>,
+    name: String,
+    volume: f32,
+    enable_media_session: bool,
+) {
     js_wrapper::init(oauth, on_ready, name, volume, enable_media_session);
 }
-
-
 
 /// Connect our Web Playback SDK instance to Spotify with the credentials provided during initialization.
 ///
@@ -128,7 +132,7 @@ pub async fn connect() -> Result<bool, JsValue> {
 }
 
 /// Closes the current session our Web Playback SDK has with Spotify.
-pub fn disconnect() -> Result<(), JsValue>{
+pub fn disconnect() -> Result<(), JsValue> {
     if !js_wrapper::player_ready() {
         return Err(JsValue::from_str("player not ready"));
     }
@@ -150,6 +154,8 @@ fn event_check(event: &str) -> bool {
     )
 }
 
+use structs::state_change::StateChange;
+use structs::Events;
 /// Create a new event listener in the Web Playback SDK. Alias for Spotify.Player#on.
 ///
 /// # Response
@@ -159,17 +165,50 @@ fn event_check(event: &str) -> bool {
 /// # Arguments
 /// * `event` - A valid event name. See Web Playback SDK Events.
 /// * `callback` - A callback function to be fired when the event has been executed.
-pub fn add_listener(event: &str, callback: &Closure<dyn FnMut(JsValue)>) -> Result<bool, JsValue> {
+use wasm_bindgen::closure::Closure;
+
+pub fn add_listener(event: structs::Events) -> Result<(), JsValue>
+{
     if !js_wrapper::player_ready() {
         return Err(JsValue::from_str("player not ready"));
     }
-    Ok(
-        if event_check(event) {
-            js_wrapper::addListener(event.to_string(), callback)
-        } else {
-            false
-        }
-    )
+
+    let event_str:&str= event.clone().into();
+
+    let closure = match event {
+        Events::Ready(cb) | Events::NotReady(cb) => {
+            Closure::wrap(Box::new(move |jsv: JsValue| {
+                let state = structs::from_js(jsv);
+                cb.borrow_mut()(state);
+            }) as Box<dyn FnMut(JsValue)>)
+        },
+        Events::PlayerStateChanged(cb) => {
+            Closure::wrap(Box::new(move |jsv: JsValue| {
+                let state = structs::from_js(jsv);
+                cb.borrow_mut()(state);
+            }) as Box<dyn FnMut(JsValue)>)
+        },
+        Events::AutoplayFailed(cb) => {
+            Closure::wrap(Box::new(move |_: JsValue| {
+                cb.borrow_mut()();
+            }) as Box<dyn FnMut(JsValue)>)
+        },
+        Events::InitializationError(cb)
+        | Events::AuthenticationError(cb)
+        | Events::AccountError(cb)
+        | Events::PlaybackError(cb) => {
+            Closure::wrap(Box::new(move |jsv: JsValue| {
+                let state = structs::from_js(jsv);
+                cb.borrow_mut()(state);
+            }) as Box<dyn FnMut(JsValue)>)
+        },
+    };
+
+    
+    js_wrapper::addListener(event_str.into(), &closure);
+    closure.forget(); // This is necessary to prevent Rust from cleaning up the closure
+
+    Ok(())
 }
 
 /// Remove a specific event listener in the Web Playback SDK.
@@ -180,17 +219,18 @@ pub fn add_listener(event: &str, callback: &Closure<dyn FnMut(JsValue)>) -> Resu
 /// # Arguments
 /// * `event` - A valid event name. See Web Playback SDK Events.
 /// * `callback` - The callback function you would like to remove from the listener.
-pub fn remove_specific_listener(event: &str, callback: &Closure<dyn FnMut(JsValue)>) -> Result<bool, JsValue> {
+pub fn remove_specific_listener(
+    event: &str,
+    callback: &Closure<dyn FnMut(JsValue)>,
+) -> Result<bool, JsValue> {
     if !js_wrapper::player_ready() {
         return Err(JsValue::from_str("player not ready"));
     }
-    Ok(
-        if event_check(event) {
-            js_wrapper::removeSpecificListener(event.to_string(), callback)
-        } else {
-            false
-        }
-    )
+    Ok(if event_check(event) {
+        js_wrapper::removeSpecificListener(event.to_string(), callback)
+    } else {
+        false
+    })
 }
 
 /// Remove an event listener in the Web Playback SDK.
@@ -205,13 +245,11 @@ pub fn remove_listener(event: &str) -> Result<bool, JsValue> {
     if !js_wrapper::player_ready() {
         return Err(JsValue::from_str("player not ready"));
     }
-    Ok(
-        if event_check(event) {
-            js_wrapper::removeListener(event.to_string())
-        } else {
-            false
-        }
-    )
+    Ok(if event_check(event) {
+        js_wrapper::removeListener(event.to_string())
+    } else {
+        false
+    })
 }
 
 /// Collect metadata on local playback.
@@ -365,11 +403,11 @@ pub async fn next_track() -> Result<(), JsValue> {
 ///
 /// # Response
 /// Returns an empty Promise
-pub async fn activate_element() -> Result<(), JsValue>{
+pub async fn activate_element() -> Result<(), JsValue> {
     if !js_wrapper::player_ready() {
         return Err(JsValue::from_str("player not ready"));
     }
-    let promise=js_wrapper::activateElement();
+    let promise = js_wrapper::activateElement();
     JsFuture::from(promise).await?;
     Ok(())
 }
@@ -383,6 +421,6 @@ pub async fn activate_element() -> Result<(), JsValue>{
 /// # Arguments
 /// * `event` - A valid event name. See Web Playback SDK Events.
 /// * `callback` - A callback function to be fired when the event has been executed.
-pub fn on(event: &str, callback: &Closure<dyn FnMut(JsValue)>) -> Result<bool, JsValue> {
-    add_listener(event, callback)
+pub fn on(event: Events) -> Result<(), JsValue> {
+    add_listener(event)
 }

@@ -1,8 +1,41 @@
+use std::{cell::RefCell, rc::Rc};
+
 pub fn from_js<T>(js_value: wasm_bindgen::JsValue) -> Result<T, serde_wasm_bindgen::Error>
 where
     T: serde::de::DeserializeOwned,
 {
     serde_wasm_bindgen::from_value(js_value)
+}
+
+type Cb<T> = Rc<RefCell<dyn FnMut(Result<T, serde_wasm_bindgen::Error>)>>;
+
+
+#[derive(Clone)]
+pub enum Events {
+    Ready(Cb<web_playback::Player>),
+    NotReady(Cb<web_playback::Player>),
+    PlayerStateChanged(Cb<state_change::StateChange>),
+    AutoplayFailed(Rc<RefCell<dyn FnMut()>>),
+    InitializationError(Cb<web_playback::Error>),
+    AuthenticationError(Cb<web_playback::Error>),
+    AccountError(Cb<web_playback::Error>),
+    PlaybackError(Cb<web_playback::Error>),
+}
+
+impl Into<&str> for Events {
+    fn into(self) -> &'static str {
+        match self {
+            Events::Ready(_) => "ready",
+            Events::NotReady(_) => "not_ready",
+            Events::PlayerStateChanged(_) => "player_state_changed",
+            Events::AutoplayFailed(_) => "autoplay_failed",
+            Events::InitializationError(_) => "initialization_error",
+            Events::AuthenticationError(_) => "authentication_error",
+            Events::AccountError(_) => "account_error",
+            Events::PlaybackError(_) => "playback_error",
+        }
+    
+    }
 }
 
 pub mod web_playback {

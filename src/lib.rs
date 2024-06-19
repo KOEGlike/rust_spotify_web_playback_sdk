@@ -7,7 +7,7 @@
 //!
 //! # Example in leptos:
 //! ```rust
-//! use rust_spotify_web_playback_sdk as sp;
+//! use rust_spotify_web_playback_sdk::prelude as sp;
 //! #[component]
 //! fn HomePage() -> impl IntoView {
 //!     let (is_sp_ready, set_is_sp_ready) = create_signal(false);
@@ -54,11 +54,12 @@
 //!     let (current_song_name, set_current_song_name) = create_signal(String::new());
 //!
 //!     if cfg!(any(target_arch = "wasm32", target_arch = "wasm64")) {
-//!         let cb = Closure::new(move |jsv: JsValue| {
-//!             let state: sp::structs::state_change::StateChange = sp::structs::from_js(jsv);
+//!         let cb =move |state: Result<StateChange, String>| {
 //!             log!("state changed, {}", state.track_window.current_track.name);
-//!             set_current_song_name(state.track_window.current_track.name);
-//!         });
+//!             if let Ok(state) = state {         
+//!                 set_current_song_name(state.track_window.current_track.name);
+//!             }
+//!         }
 //!         create_effect(move |_| {
 //!             if is_sp_ready() {
 //!                 log!("ready");
@@ -80,8 +81,11 @@
 //! }
 //! ```
 
+use std::fmt::format;
+
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
+
 
 pub mod js_wrapper;
 pub mod structs;
@@ -93,6 +97,7 @@ pub mod prelude {
             Events,
         },
         *,
+        js_wrapper::player_ready,
     };
     pub use wasm_bindgen::prelude::*;
 }
@@ -122,39 +127,29 @@ where
 ///
 /// # Response
 /// a Promise containing a Boolean (either true or false) with the success of the connection.
-pub async fn connect() -> Result<bool, JsValue> {
+pub async fn connect() -> Result<bool, String> {
     if !js_wrapper::player_ready() {
-        return Err(JsValue::from_str("player not ready"));
+        return Err("player not ready".into());
     }
     let promise = js_wrapper::connect();
-    let result = JsFuture::from(promise).await?;
+    let result = match JsFuture::from(promise).await {
+        Ok(e) => {e},
+        Err(e) => return Err(format!("{:#?}",e)),
+    
+    };
     match result.as_bool() {
         Some(b) => Ok(b),
-        None => Err(result),
+        None => Err(format!("not bool, error: {:#?}", result)),
     }
 }
 
 /// Closes the current session our Web Playback SDK has with Spotify.
-pub fn disconnect() -> Result<(), JsValue> {
+pub fn disconnect() -> Result<(), String> {
     if !js_wrapper::player_ready() {
-        return Err(JsValue::from_str("player not ready"));
+        return Err("player not ready".into());
     }
     js_wrapper::disconnect();
     Ok(())
-}
-
-fn event_check(event: &str) -> bool {
-    matches!(
-        event,
-        "ready"
-            | "not_ready"
-            | "player_state_changed"
-            | "autoplay_failed"
-            | "initialization_error"
-            | "authentication_error"
-            | "account_error"
-            | "playback_error"
-    )
 }
 
 /// Create a new event listener in the Web Playback SDK. Alias for Spotify.Player#on.
@@ -166,6 +161,9 @@ fn event_check(event: &str) -> bool {
 /// # Arguments
 /// * `event` - A valid event name. See Web Playback SDK Events. Events type
 /// * `callback` - A callback function to be fired when the event has been executed.
+///                If the callback takes an argument, the argument will be wrapped in a Result type for conversion for js into rust.
+/// 
+/// 
 
 #[macro_export]
 macro_rules! add_listener {
@@ -321,45 +319,6 @@ macro_rules! add_listener {
     }};
 }
 
-/*pub fn add_listener(event: structs::Events) -> Result<(), JsValue> {
-    if !js_wrapper::player_ready() {
-        return Err(JsValue::from_str("player not ready"));
-    }
-
-    let event_str: &str = event.clone().into();
-
-    let closure = match event {
-        Events::Ready(cb) | Events::NotReady(cb) => Closure::wrap(Box::new(move |jsv: JsValue| {
-            let state = structs::from_js(jsv);
-            cb.borrow_mut()(state);
-        })
-            as Box<dyn FnMut(JsValue)>),
-        Events::PlayerStateChanged(cb) => Closure::wrap(Box::new(move |jsv: JsValue| {
-            let state = structs::from_js(jsv);
-            cb.borrow_mut()(state);
-        }) as Box<dyn FnMut(JsValue)>),
-        Events::AutoplayFailed(cb) => Closure::wrap(Box::new(move |_: JsValue| {
-            cb.borrow_mut()();
-        }) as Box<dyn FnMut(JsValue)>),
-        Events::InitializationError(cb)
-        | Events::AuthenticationError(cb)
-        | Events::AccountError(cb)
-        | Events::PlaybackError(cb) => Closure::wrap(Box::new(move |jsv: JsValue| {
-            let state = structs::from_js(jsv);
-            cb.borrow_mut()(state);
-        }) as Box<dyn FnMut(JsValue)>),
-    };
-
-    let result = js_wrapper::addListener(event_str.into(), &closure);
-    closure.forget(); // This is necessary to prevent Rust from cleaning up the closure
-
-    if result {
-        Ok(())
-    } else {
-        Err(JsValue::from_str("event not found"))
-    }
-}*/
-
 /// Remove a specific event listener in the Web Playback SDK.
 ///
 /// # Response
@@ -373,13 +332,27 @@ pub fn remove_specific_listener(
     callback: &Closure<dyn FnMut(JsValue)>,
 ) -> Result<bool, JsValue> {
     if !js_wrapper::player_ready() {
-        return Err(JsValue::from_str("player not ready"));
+        return Err("player not ready".into());
     }
     Ok(if event_check(event) {
         js_wrapper::removeSpecificListener(event.to_string(), callback)
     } else {
         false
     })
+}
+
+fn event_check(event: &str) -> bool {
+    matches!(
+        event,
+        "ready"
+            | "not_ready"
+            | "player_state_changed"
+            | "autoplay_failed"
+            | "initialization_error"
+            | "authentication_error"
+            | "account_error"
+            | "playback_error"
+    )
 }
 
 /// Remove an event listener in the Web Playback SDK.
@@ -390,9 +363,9 @@ pub fn remove_specific_listener(
 ///
 /// # Arguments
 /// * `event` - A valid event name. See Web Playback SDK Events.
-pub fn remove_listener(event: &str) -> Result<bool, JsValue> {
+pub fn remove_listener(event: &str) -> Result<bool, String> {
     if !js_wrapper::player_ready() {
-        return Err(JsValue::from_str("player not ready"));
+        return Err("player not ready".into());
     }
    if event_check(event) {
         Ok(js_wrapper::removeListener(event.to_string()))
@@ -406,17 +379,24 @@ use crate::structs::web_playback::State;
 ///
 /// # Response
 /// Returns a Promise. It will return either a WebPlaybackState object or null depending on if the user is successfully connected. Wrapped in result if the future throws an exception
-pub async fn get_current_state() -> Result<Option<State>, JsValue> {
+pub async fn get_current_state() -> Result<Option<State>, String> {
     if !js_wrapper::player_ready() {
-        return Err(JsValue::from_str("player not ready"));
+        return Err("player not ready".into());
     }
     let promise = js_wrapper::getCurrentState();
-    let result = JsFuture::from(promise).await?;
+    let result = match JsFuture::from(promise).await {
+        Ok(e) => {e},
+        Err(e) => return Err(format!("{:#?}",e)),
+    
+    };
     if result.is_null() {
         return Ok(None);
     }
-    let state = serde_wasm_bindgen::from_value(result)?;
-    Ok(Some(state))
+    match  serde_wasm_bindgen::from_value(result) {
+        Ok(e) => Ok(Some(e)),
+        Err(e) => Err(format!("{:#?}",e)),
+    }
+    
 }
 
 /// Rename the Spotify Player device. This is visible across all Spotify Connect devices.
@@ -426,27 +406,35 @@ pub async fn get_current_state() -> Result<Option<State>, JsValue> {
 ///
 /// # Arguments
 /// * `name` - The new desired player name.
-pub async fn set_name(name: String) -> Result<(), JsValue> {
+pub async fn set_name(name: String) -> Result<(), String> {
     if !js_wrapper::player_ready() {
-        return Err(JsValue::from_str("player not ready"));
+        return Err("player not ready".into());
     }
     let promise = js_wrapper::setName(name);
-    JsFuture::from(promise).await?;
-    Ok(())
+    match JsFuture::from(promise).await {
+        Ok(_) => Ok(()),
+        Err(e) => Err(format!("{:#?}",e)),
+    }
 }
 
 /// Get the local volume currently set in the Web Playback SDK.
 ///
 /// # Response
 /// Returns a Promise containing the local volume (as a Float between 0 and 1).
-pub async fn get_volume() -> Result<f32, JsValue> {
+pub async fn get_volume() -> Result<f32, String> {
     if !js_wrapper::player_ready() {
-        return Err(JsValue::from_str("player not ready"));
+        return Err("player not ready".into());
     }
     let promise = js_wrapper::getVolume();
-    let result = JsFuture::from(promise).await?;
-    let volume: f32 = serde_wasm_bindgen::from_value(result)?;
-    Ok(volume)
+    let result=match JsFuture::from(promise).await {
+        Ok(e) => {e},
+        Err(e) => return Err(format!("{:#?}",e)),
+    };
+    match serde_wasm_bindgen::from_value(result) {
+        Ok(e) => Ok(e),
+        Err(e) => Err(format!("{:#?}",e)),
+    }
+   
 }
 
 /// Set the local volume for the Web Playback SDK.
@@ -456,52 +444,60 @@ pub async fn get_volume() -> Result<f32, JsValue> {
 ///
 /// # Arguments
 /// * `volume` - The new desired volume for local playback. Between 0 and 1. Note: On iOS devices, the audio level is always under the user’s physical control. The volume property is not settable in JavaScript. Reading the volume property always returns 1. More details can be found in the iOS-specific Considerations documentation page by Apple.
-pub async fn set_volume(volume: f32) -> Result<(), JsValue> {
+pub async fn set_volume(volume: f32) -> Result<(), String> {
     if !js_wrapper::player_ready() {
-        return Err(JsValue::from_str("player not ready"));
+        return Err("player not ready".into());
     }
     let promise = js_wrapper::setVolume(volume);
-    JsFuture::from(promise).await?;
-    Ok(())
+    match JsFuture::from(promise).await {
+        Ok(_) => Ok(()),
+        Err(e) => Err(format!("{:#?}",e)),
+    }
 }
 
 /// Pause the local playback.
 ///
 /// # Response
 /// Returns an empty Promise
-pub async fn pause() -> Result<(), JsValue> {
+pub async fn pause() -> Result<(), String> {
     if !js_wrapper::player_ready() {
-        return Err(JsValue::from_str("player not ready"));
+        return Err("player not ready".into());
     }
     let promise = js_wrapper::pause();
-    JsFuture::from(promise).await?;
-    Ok(())
+    match JsFuture::from(promise).await {
+        Ok(_) => Ok(()),
+        Err(e) => Err(format!("{:#?}",e)),
+    }
 }
 
 /// Resume the local playback.
 ///
 /// # Response
 /// Returns an empty Promise
-pub async fn resume() -> Result<(), JsValue> {
+pub async fn resume() -> Result<(), String> {
     if !js_wrapper::player_ready() {
-        return Err(JsValue::from_str("player not ready"));
+        return Err("player not ready".into());
     }
     let promise = js_wrapper::resume();
-    JsFuture::from(promise).await?;
-    Ok(())
+    match JsFuture::from(promise).await {
+        Ok(_) => Ok(()),
+        Err(e) => Err(format!("{:#?}",e)),
+    }
 }
 
 /// Resume/pause the local playback.
 ///
 /// # Response
 /// Returns an empty Promise
-pub async fn toggle_play() -> Result<(), JsValue> {
+pub async fn toggle_play() -> Result<(), String> {
     if !js_wrapper::player_ready() {
-        return Err(JsValue::from_str("player not ready"));
+        return Err("player not ready".into());
     }
     let promise = js_wrapper::togglePlay();
-    JsFuture::from(promise).await?;
-    Ok(())
+    match JsFuture::from(promise).await {
+        Ok(_) => Ok(()),
+        Err(e) => Err(format!("{:#?}",e)),
+    }
 }
 
 /// Seek to a position in the current track in local playback.
@@ -511,39 +507,45 @@ pub async fn toggle_play() -> Result<(), JsValue> {
 ///
 /// # Arguments
 /// * `position_ms` - The position in milliseconds to seek to.
-pub async fn seek(position_ms: u32) -> Result<(), JsValue> {
+pub async fn seek(position_ms: u32) -> Result<(), String> {
     if !js_wrapper::player_ready() {
-        return Err(JsValue::from_str("player not ready"));
+        return Err("player not ready".into());
     }
     let promise = js_wrapper::seek(position_ms);
-    JsFuture::from(promise).await?;
-    Ok(())
+    match JsFuture::from(promise).await {
+        Ok(_) => Ok(()),
+        Err(e) => Err(format!("{:#?}",e)),
+    }
 }
 
 /// Switch to the previous track in local playback.
 ///
 /// # Response
 /// Returns an empty Promise
-pub async fn previous_track() -> Result<(), JsValue> {
+pub async fn previous_track() -> Result<(), String> {
     if !js_wrapper::player_ready() {
-        return Err(JsValue::from_str("player not ready"));
+        return Err("player not ready".into());
     }
     let promise = js_wrapper::previousTrack();
-    JsFuture::from(promise).await?;
-    Ok(())
+    match JsFuture::from(promise).await {
+        Ok(_) => Ok(()),
+        Err(e) => Err(format!("{:#?}",e)),
+    }
 }
 
 /// Skip to the next track in local playback.
 ///
 /// # Response
 /// Returns an empty Promise
-pub async fn next_track() -> Result<(), JsValue> {
+pub async fn next_track() -> Result<(), String> {
     if !js_wrapper::player_ready() {
-        return Err(JsValue::from_str("player not ready"));
+        return Err("player not ready".into());
     }
     let promise = js_wrapper::nextTrack();
-    JsFuture::from(promise).await?;
-    Ok(())
+    match JsFuture::from(promise).await {
+        Ok(_) => Ok(()),
+        Err(e) => Err(format!("{:#?}",e)),
+    }
 }
 
 /// Some browsers prevent autoplay of media by ensuring that all playback is triggered
@@ -553,11 +555,14 @@ pub async fn next_track() -> Result<(), JsValue> {
 ///
 /// # Response
 /// Returns an empty Promise
-pub async fn activate_element() -> Result<(), JsValue> {
+pub async fn activate_element() -> Result<(), String> {
     if !js_wrapper::player_ready() {
-        return Err(JsValue::from_str("player not ready"));
+        return Err("player not ready".into());
     }
     let promise = js_wrapper::activateElement();
-    JsFuture::from(promise).await?;
-    Ok(())
+    match JsFuture::from(promise).await {
+        Ok(_) => Ok(()),
+        Err(e) => Err(format!("{:#?}",e)),
+    }
+    
 }

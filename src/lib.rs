@@ -81,8 +81,6 @@
 //! }
 //! ```
 
-use std::fmt::format;
-
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
@@ -94,7 +92,6 @@ pub mod prelude {
         structs::{
             state_change::StateChange,
             web_playback::{Error, Player, State, Track},
-            Events,
         },
         *,
         js_wrapper::player_ready,

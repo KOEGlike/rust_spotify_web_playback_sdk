@@ -4,37 +4,8 @@ pub fn from_js<T>(js_value: wasm_bindgen::JsValue) -> Result<T, serde_wasm_bindg
 where
     T: serde::de::DeserializeOwned,
 {
+    web_sys::console::log_1(&js_value);
     serde_wasm_bindgen::from_value(js_value)
-}
-
-pub type Cb<T> = Rc<RefCell<dyn FnMut(Result<T, serde_wasm_bindgen::Error>)>>;
-
-#[derive(Clone)]
-pub enum Events
-{
-    Ready,
-    NotReady,
-    PlayerStateChanged,
-    AutoplayFailed,
-    InitializationError,
-    AuthenticationError,
-    AccountError,
-    PlaybackError,
-}
-
-impl From<Events> for &str {
-    fn from(val: Events) -> Self {
-        match val {
-            Events::Ready => "ready",
-            Events::NotReady => "not_ready",
-            Events::PlayerStateChanged => "player_state_changed",
-            Events::AutoplayFailed => "autoplay_failed",
-            Events::InitializationError => "initialization_error",
-            Events::AuthenticationError => "authentication_error",
-            Events::AccountError => "account_error",
-            Events::PlaybackError => "playback_error",
-        }
-    }
 }
 
 pub mod web_playback {
@@ -56,15 +27,15 @@ pub mod web_playback {
             pub context:
                 #[derive(Serialize, Deserialize, Debug)]
                 pub struct Context {
-                /// The URI of the context
-                pub uri: Option<String>,
-                /// Additional metadata for the context (can be null)
-                pub metadata: Option<
-                    #[derive(Serialize, Deserialize, Debug)]
-                    pub struct ContextMetadata {
-                        pub context_description:Option<String>
-                    }
-                >
+                    /// The URI of the context
+                    pub uri: Option<String>,
+                    /// Additional metadata for the context (can be null)
+                    pub metadata: Option<
+                        #[derive(Serialize, Deserialize, Debug)]
+                        pub struct ContextMetadata {
+                            pub context_description:Option<String>
+                        }
+                    >
                 },
             pub disallows:
                 #[derive(Serialize, Deserialize, Debug)]
@@ -205,6 +176,7 @@ pub mod state_change {
             pub shuffle: bool,
             pub timestamp: f64,
             pub track_window: TrackWindow,
+            pub shuffle_mode: i8
         }
     }
 }

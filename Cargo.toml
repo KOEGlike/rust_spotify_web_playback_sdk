@@ -11,6 +11,7 @@ documentation = "https://docs.rs/rust_spotify_web_playback_sdk/"
 
 [dependencies]
 js-sys = "0.3"
+web-sys = {version = "0.3", features = ["console"]}
 wasm-bindgen-futures = "0.4"
 nestify = "0.3"
 serde-wasm-bindgen = "=0.6"

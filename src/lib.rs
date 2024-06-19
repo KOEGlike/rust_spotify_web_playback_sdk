@@ -83,7 +83,7 @@
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
-mod js_wrapper;
+pub mod js_wrapper;
 pub mod structs;
 pub mod prelude {
     pub use crate::{
@@ -93,7 +93,6 @@ pub mod prelude {
             Events,
         },
         *,
-
     };
     pub use wasm_bindgen::prelude::*;
 }
@@ -113,7 +112,10 @@ where
 {
     let oauth = Closure::wrap(Box::new(oauth) as Box<dyn FnMut() -> String>);
     let on_ready = Closure::wrap(Box::new(on_ready) as Box<dyn FnMut()>);
-    js_wrapper::init(&oauth, &on_ready, name.into(), volume, enable_media_session);
+    //leak these closures so they don't get cleaned up
+    let oauth = Box::leak(Box::new(oauth)) as &'static Closure<dyn FnMut() -> String>;
+    let on_ready = Box::leak(Box::new(on_ready)) as &'static Closure<dyn FnMut()>;
+    js_wrapper::init(oauth, on_ready, name.into(), volume, enable_media_session);
 }
 
 /// Connect our Web Playback SDK instance to Spotify with the credentials provided during initialization.
@@ -155,7 +157,6 @@ fn event_check(event: &str) -> bool {
     )
 }
 
-
 /// Create a new event listener in the Web Playback SDK. Alias for Spotify.Player#on.
 ///
 /// # Response
@@ -166,127 +167,158 @@ fn event_check(event: &str) -> bool {
 /// * `event` - A valid event name. See Web Playback SDK Events. Events type
 /// * `callback` - A callback function to be fired when the event has been executed.
 
-
-    #[macro_export]
-    macro_rules! add_listener_dont_use {
-        ("ready", $cb:expr) => {
-            let test: Box<dyn FnMut(Result<Player, String) + 'static> = Box::new(cb);
-            let cb= |jsv: JsValue| {
-                let state =from_js(jsv);
-                match state {
-                    Ok(state) => cb(state),
-                    Err(e) => cb(Err(format!("{}", e))),
-                }
-            };
-            let closure = Closure::wrap(test as Box<dyn FnMut(JsValue)>);
-            addListener("ready", &closure)
-        };
-        ("not_ready", $cb:expr) => {
-            let test: Box<dyn FnMut(Result<Player, String) + 'static> = Box::new(cb);
-            let cb= |jsv: JsValue| {
-                let state =from_js(jsv);
-                match state {
-                    Ok(state) => cb(state),
-                    Err(e) => cb(Err(format!("{}", e))),
-                }
-            };
-            let closure = Closure::wrap(test as Box<dyn FnMut(JsValue)>);
-            addListener("not_ready", &closure)
-        };
-        ("player_state_changed", $cb:expr) => {
-            let test: Box<dyn FnMut(Result<StateChange, String) + 'static> = Box::new(cb);
-            let cb= |jsv: JsValue| {
-                let state =from_js(jsv);
-                match state {
-                    Ok(state) => cb(state),
-                    Err(e) => cb(Err(format!("{}", e))),
-                }
-            };
-            let closure = Closure::wrap(test as Box<dyn FnMut(JsValue)>);
-            addListener("player_state_changed", &closure)
-        };
-        ("autoplay_failed", $cb:expr) => {
-            let test: Box<dyn FnMut() + 'static> = Box::new(cb);
-            let cb= || {
-                cb();
-            };
-            let closure = Closure::wrap(test as Box<dyn FnMut()>);
-            addListenerAutoplayFailed("autoplay_failed", &closure)
-        };
-        ("initialization_error", $cb:expr) => {
-            let test: Box<dyn FnMut(Result<Error, String>) + 'static> = Box::new(cb);
-            let cb= |jsv: JsValue| {
-                let state =from_js(jsv);
-                match state {
-                    Ok(state) => cb(state),
-                    Err(e) => cb(Err(format!("{}", e))),
-                }
-            };
-            let closure = Closure::wrap(test as Box<dyn FnMut(JsValue)>);
-            addListener("initialization_error", &closure)
-        };
-        ("authentication_error", $cb:expr) => {
-            let test: Box<dyn FnMut(Result<Error, String>) + 'static> = Box::new(cb);
-            let cb= |jsv: JsValue| {
-                let state =from_js(jsv);
-                match state {
-                    Ok(state) => cb(state),
-                    Err(e) => cb(Err(format!("{}", e))),
-                }
-            };
-            let closure = Closure::wrap(test as Box<dyn FnMut(JsValue)>);
-            addListener("authentication_error", &closure)
-        };
-        ("account_error", $cb:expr) => {
-            let test: Box<dyn FnMut(Result<Error, String>) + 'static> = Box::new(cb);
-            let cb= |jsv: JsValue| {
-                let state =from_js(jsv);
-                match state {
-                    Ok(state) => cb(state),
-                    Err(e) => cb(Err(format!("{}", e))),
-                }
-            };
-            let closure = Closure::wrap(test as Box<dyn FnMut(JsValue)>);
-            addListener("account_error", &closure)
-        };
-        ("playback_error", $cb:expr) => {
-            let test: Box<dyn FnMut(Result<Error, String>) + 'static> = Box::new(cb);
-            let cb= |jsv: JsValue| {
-                let state =from_js(jsv);
-                match state {
-                    Ok(state) => cb(state),
-                    Err(e) => cb(Err(format!("{}", e))),
-                }
-            };
-            let closure = Closure::wrap(test as Box<dyn FnMut(JsValue)>);
-            addListener("playback_error", &closure)
-        };
-        
-        
-    }
-
-
 #[macro_export]
 macro_rules! add_listener {
-    ($event:expr, $cb:expr) => {
-        {
-            use $crate::structs::Events;
-            use $crate::js_wrapper::addListener;
-            use $crate::prelude::*;
-            use $crate::structs::web_playback::Player;
-            use $crate::structs::state_change::StateChange;
-            use $crate::structs::web_playback::Error;
-            use $crate::structs::from_js;
+    ("ready", $cb:expr) => {{
+        use $crate::js_wrapper::addListener;
+        use $crate::structs::from_js;
+        use $crate::structs::state_change::Player;
 
-            use std::string::String;
-            use std::result::Result;
+        let test: Box<dyn FnMut(Result<Player, String>) + 'static> = Box::new($cb);
+        let cb = $cb;
+        let cb = move |jsv: JsValue| {
+            let state = from_js(jsv);
+            match state {
+                Ok(state) => cb(state),
+                Err(e) => cb(Err(format!("{}", e))),
+            }
+        };
+        let closure = Closure::wrap(Box::new(cb) as Box<dyn FnMut(JsValue)>);
+        let closure_ref = Box::leak(Box::new(closure)) as &'static Closure<dyn FnMut(JsValue)>;
+        addListener("ready".into(), closure_ref)
+    }};
+    ("not_ready", $cb:expr) => {{
+        use std::result::Result;
+        use std::string::String;
+        use $crate::js_wrapper::addListener;
+        use $crate::structs::from_js;
+        use $crate::structs::state_change::Player;
 
-            let event: Events = $event;
-            let event_str: &str = event.clone().into();
-            add_listener_dont_use!(event_str, $cb);
+        let test: Box<dyn FnMut(Result<Player, String>) + 'static> = Box::new($cb);
+        let cb = $cb;
+        let cb = move |jsv: JsValue| {
+            let state = from_js(jsv);
+            match state {
+                Ok(state) => cb(state),
+                Err(e) => cb(Err(format!("{}", e))),
+            }
+        };
+        let closure = Closure::wrap(Box::new(cb) as Box<dyn FnMut(JsValue)>);
+        let closure_ref = Box::leak(Box::new(closure)) as &'static Closure<dyn FnMut(JsValue)>;
+        addListener("not_ready".into(), closure_ref)
+    }};
+    ("player_state_changed", $cb:expr) => {{
+        use std::result::Result;
+        use std::string::String;
+        use $crate::js_wrapper::addListener;
+        use $crate::structs::from_js;
+        use $crate::structs::state_change::StateChange;
 
-        }
-    };
+        let test: Box<dyn FnMut(Result<StateChange, String>) + 'static> = Box::new($cb);
+        let cb = $cb;
+        let cb = move |jsv: JsValue| {
+            let state = from_js(jsv);
+            match state {
+                Ok(state) => cb(state),
+                Err(e) => cb(Err(format!("{}", e))),
+            }
+        };
+        let closure = Closure::wrap(Box::new(cb) as Box<dyn FnMut(JsValue)>);
+        let closure_ref = Box::leak(Box::new(closure)) as &'static Closure<dyn FnMut(JsValue)>;
+        addListener("player_state_changed".into(), closure_ref)
+    }};
+    ("autoplay_failed", $cb:expr) => {{
+        use std::result::Result;
+        use std::string::String;
+        use $crate::js_wrapper::addListenerAutoplayFailed;
+
+        let test: Box<dyn FnMut() + 'static> = Box::new($cb);
+        let cb = $cb;
+
+        let closure = Closure::wrap(Box::new(cb) as Box<dyn FnMut()>);
+        let closure_ref = Box::leak(Box::new(closure)) as &'static Closure<dyn FnMut()>;
+        addListenerAutoplayFailed("autoplay_failed".into(), closure_ref)
+    }};
+    ("initialization_error", $cb:expr) => {{
+        use std::result::Result;
+        use std::string::String;
+        use $crate::js_wrapper::addListener;
+        use $crate::structs::from_js;
+        use $crate::structs::web_playback::Error;
+
+        let test: Box<dyn FnMut(Result<Error, String>) + 'static> = Box::new($cb);
+        let cb = $cb;
+        let cb = move |jsv: JsValue| {
+            let state = from_js(jsv);
+            match state {
+                Ok(state) => cb(state),
+                Err(e) => cb(Err(format!("{}", e))),
+            }
+        };
+        let closure = Closure::wrap(Box::new(cb) as Box<dyn FnMut(JsValue)>);
+        let closure_ref = Box::leak(Box::new(closure)) as &'static Closure<dyn FnMut(JsValue)>;
+        addListener("initialization_error".into(), closure_ref)
+    }};
+    ("authentication_error", $cb:expr) => {{
+        use std::result::Result;
+        use std::string::String;
+        use $crate::js_wrapper::addListener;
+        use $crate::structs::from_js;
+        use $crate::structs::web_playback::Error;
+
+        let test: Box<dyn FnMut(Result<Error, String>) + 'static> = Box::new($cb);
+        let cb = $cb;
+        let cb = move |jsv: JsValue| {
+            let state = from_js(jsv);
+            match state {
+                Ok(state) => cb(state),
+                Err(e) => cb(Err(format!("{}", e))),
+            }
+        };
+        let closure = Closure::wrap(Box::new(cb) as Box<dyn FnMut(JsValue)>);
+        let closure_ref = Box::leak(Box::new(closure)) as &'static Closure<dyn FnMut(JsValue)>;
+        addListener("authentication_error".into(), closure_ref)
+    }};
+    ("account_error", $cb:expr) => {{
+        use std::result::Result;
+        use std::string::String;
+        use $crate::js_wrapper::addListener;
+        use $crate::structs::from_js;
+        use $crate::structs::web_playback::Error;
+
+        let test: Box<dyn FnMut(Result<Error, String>) + 'static> = Box::new($cb);
+        let cb = $cb;
+        let cb = move |jsv: JsValue| {
+            let state = from_js(jsv);
+            match state {
+                Ok(state) => cb(state),
+                Err(e) => cb(Err(format!("{}", e))),
+            }
+        };
+        let closure = Closure::wrap(Box::new(cb) as Box<dyn FnMut(JsValue)>);
+        let closure_ref = Box::leak(Box::new(closure)) as &'static Closure<dyn FnMut(JsValue)>;
+        addListener("account_error".into(), closure_ref)
+    }};
+    ("playback_error", $cb:expr) => {{
+        use std::result::Result;
+        use std::string::String;
+        use $crate::js_wrapper::addListener;
+        use $crate::structs::from_js;
+        use $crate::structs::web_playback::Error;
+
+        let test: Box<dyn FnMut(Result<Error, String>) + 'static> = Box::new($cb);
+        let cb = $cb;
+        let cb = move |jsv: JsValue| {
+            let state = from_js(jsv);
+            match state {
+                Ok(state) => cb(state),
+                Err(e) => cb(Err(format!("{}", e))),
+            }
+        };
+        let closure = Closure::wrap(Box::new(cb) as Box<dyn FnMut(JsValue)>);
+        let closure_ref = Box::leak(Box::new(closure)) as &'static Closure<dyn FnMut(JsValue)>;
+        addListener("playback_error".into(), closure_ref)
+    }};
 }
 
 /*pub fn add_listener(event: structs::Events) -> Result<(), JsValue> {
@@ -362,11 +394,11 @@ pub fn remove_listener(event: &str) -> Result<bool, JsValue> {
     if !js_wrapper::player_ready() {
         return Err(JsValue::from_str("player not ready"));
     }
-    Ok(if event_check(event) {
-        js_wrapper::removeListener(event.to_string())
+   if event_check(event) {
+        Ok(js_wrapper::removeListener(event.to_string()))
     } else {
-        false
-    })
+        Err("event does not exist".into())
+    }
 }
 
 use crate::structs::web_playback::State;

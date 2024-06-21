@@ -1,5 +1,3 @@
-use std::{cell::RefCell, rc::Rc};
-
 pub fn from_js<T>(js_value: wasm_bindgen::JsValue) -> Result<T, serde_wasm_bindgen::Error>
 where
     T: serde::de::DeserializeOwned,
@@ -117,9 +115,44 @@ pub mod web_playback {
 }
 
 pub mod state_change {
-    use crate::{structs::web_playback::Context, structs::web_playback::TrackWindow};
+    use crate::structs::web_playback::{Context, Album};
     use nestify::*;
     use serde::{Deserialize, Serialize};
+
+    nest! {
+        #[derive(Serialize, Deserialize, Debug)]
+        pub struct Track {
+            pub album: Album,
+            pub artists: Vec<
+                #[derive(Serialize, Deserialize, Debug)]
+                pub struct Artist {
+                    pub uri: String,
+                    pub url: String,
+                    pub name: String,
+                }
+            >,
+            pub duration_ms: i32,
+            pub id: String,
+            pub is_playable: bool,
+            pub linked_from: Option<
+                #[derive(Serialize, Deserialize, Debug)]
+                pub struct LinkedFrom {
+                    pub uri: String,
+                    pub id: String,
+                }
+            >,
+            pub media_type: String,
+            pub metadata: Option<
+                #[derive(Serialize, Deserialize, Debug)]
+                pub struct Metadata {
+                }
+            >,
+            pub name: String,
+            pub track_type: String,
+            pub uid: String,
+            pub uri: String, 
+        }
+    }
 
     nest! {
         #[derive(Serialize, Deserialize, Debug)]
@@ -129,15 +162,15 @@ pub mod state_change {
             pub disallows:
                 #[derive(Serialize, Deserialize, Debug)]
                 pub struct Disallows {
-                    peeking_next: bool,
-                    peeking_prev: bool,
-                    seeking: bool,
-                    skipping_next: bool,
-                    skipping_prev: bool,
-                    toggling_repeat_context: bool,
-                    toggling_repeat_track: bool,
-                    toggling_shuffle: bool,
-                    undefined: bool,
+                    pub peeking_next: bool,
+                    pub peeking_prev: bool,
+                    pub seeking: bool,
+                    pub skipping_next: bool,
+                    pub skipping_prev: bool,
+                    pub toggling_repeat_context: bool,
+                    pub toggling_repeat_track: bool,
+                    pub toggling_shuffle: bool,
+                    pub undefined: bool,
                 },
             pub duration: i32,
             pub loading: bool,
@@ -156,7 +189,7 @@ pub mod state_change {
                 },
             pub playback_id:String,
             pub playback_quality: String,
-            pub playback_speed:f64,
+            pub playback_speed:i32,
             pub position: i32,
             pub repeat_mode: i8,
             pub restrictions:
@@ -174,9 +207,15 @@ pub mod state_change {
                     pub undefined:Vec<String>
                 },
             pub shuffle: bool,
-            pub timestamp: f64,
-            pub track_window: TrackWindow,
-            pub shuffle_mode: i8
+            pub shuffle_mode: i8,
+            pub timestamp: i64,
+            pub track_window: 
+                #[derive(Serialize, Deserialize, Debug)]
+                pub struct TrackWindow {
+                    pub current_track: Track,
+                    pub next_tracks: Vec<Track>,
+                    pub previous_tracks: Vec<Track>,
+                },
         }
     }
 }

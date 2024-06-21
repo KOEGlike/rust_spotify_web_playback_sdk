@@ -167,14 +167,14 @@ macro_rules! add_listener {
     ("ready", $cb:expr) => {{
         use $crate::js_wrapper::addListener;
         use $crate::structs::from_js;
-        use $crate::structs::state_change::Player;
+        use $crate::structs::web_playback::Player;
 
         let test: Box<dyn FnMut(Result<Player, String>) + 'static> = Box::new($cb);
         let cb = $cb;
         let cb = move |jsv: JsValue| {
             let state = from_js(jsv);
             match state {
-                Ok(state) => cb(state),
+                Ok(state) => cb(Ok(state)),
                 Err(e) => cb(Err(format!("{}", e))),
             }
         };
@@ -187,14 +187,14 @@ macro_rules! add_listener {
         use std::string::String;
         use $crate::js_wrapper::addListener;
         use $crate::structs::from_js;
-        use $crate::structs::state_change::Player;
+        use $crate::structs::web_playback::Player;
 
         let test: Box<dyn FnMut(Result<Player, String>) + 'static> = Box::new($cb);
         let cb = $cb;
         let cb = move |jsv: JsValue| {
             let state = from_js(jsv);
             match state {
-                Ok(state) => cb(state),
+                Ok(state) => cb(Ok(state)),
                 Err(e) => cb(Err(format!("{}", e))),
             }
         };
@@ -214,7 +214,7 @@ macro_rules! add_listener {
         let cb = move |jsv: JsValue| {
             let state = from_js(jsv);
             match state {
-                Ok(state) => cb(state),
+                Ok(state) => cb(Ok(state)),
                 Err(e) => cb(Err(format!("{}", e))),
             }
         };
@@ -246,7 +246,7 @@ macro_rules! add_listener {
         let cb = move |jsv: JsValue| {
             let state = from_js(jsv);
             match state {
-                Ok(state) => cb(state),
+                Ok(state) => cb(Ok(state)),
                 Err(e) => cb(Err(format!("{}", e))),
             }
         };
@@ -266,7 +266,7 @@ macro_rules! add_listener {
         let cb = move |jsv: JsValue| {
             let state = from_js(jsv);
             match state {
-                Ok(state) => cb(state),
+                Ok(state) => cb(Ok(state)),
                 Err(e) => cb(Err(format!("{}", e))),
             }
         };
@@ -286,7 +286,7 @@ macro_rules! add_listener {
         let cb = move |jsv: JsValue| {
             let state = from_js(jsv);
             match state {
-                Ok(state) => cb(state),
+                Ok(state) => cb(Ok(state)),
                 Err(e) => cb(Err(format!("{}", e))),
             }
         };
@@ -306,7 +306,7 @@ macro_rules! add_listener {
         let cb = move |jsv: JsValue| {
             let state = from_js(jsv);
             match state {
-                Ok(state) => cb(state),
+                Ok(state) => cb(Ok(state)),
                 Err(e) => cb(Err(format!("{}", e))),
             }
         };

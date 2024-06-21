@@ -8,7 +8,6 @@ function init(oauth, on_ready, name, volume, enableMediaSession) {
             name: name,
             getOAuthToken: cb => { 
                 cb(oauth_cb());
-                console.log(oauth_cb());
             },
             volume: volume,
             enableMediaSession: enableMediaSession

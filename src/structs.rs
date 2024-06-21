@@ -46,7 +46,7 @@ pub mod web_playback {
                 #[derive(Serialize, Deserialize, Debug)]
                 pub struct Disallows {
                     /// The current track. By default, these fields
-                    //pub pausing: bool,
+                    pub pausing: bool,
                     /// will either be set to false or undefined, which
                     pub peeking_next: bool,
                     /// indicates that the particular operation is

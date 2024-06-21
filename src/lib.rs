@@ -7,74 +7,82 @@
 //!
 //! # Example in leptos:
 //! ```rust
-//! use rust_spotify_web_playback_sdk::prelude as sp;
+//! use leptos::*;
 //! #[component]
 //! fn Player() -> impl IntoView {
-//!     let (is_sp_ready, set_is_sp_ready) = create_signal(false);
-//!     if cfg!(any(target_arch = "wasm32", target_arch = "wasm64")) {
-//!         let token="[Your token goes here]";
-//!         let oauth_cb = || {
-//!             log!("oauth was called");
-//!             token.to_string()
-//!         };
-//!         let oauth_cb = Closure::new(oauth_cb);
-//!         let update_signal = move || {
-//!             set_is_sp_ready(true);
-//!         };
-//!         let on_ready = Closure::new(update_signal);
+//!     use leptos::logging::log;
+//!     use rust_spotify_web_playback_sdk::prelude as sp;
 //!
-//!         create_effect(move |_| {
-//!             sp::init(
-//!                 &oauth_cb,
-//!                 &on_ready,
-//!                 "example player".to_string(),
-//!                 1.0,
-//!                 false,
-//!             );
-//!         });
-//!     }
+//!     let (current_song_name, set_current_song_name) = create_signal(String::new());
+//!
+//!     let token = "BQAdHQqBLczVFdCIM58tVbF0eaztF-83cXczNdz2Aua-U7JyOdIlpiG5M7oEww-dK7jo3qjcpMJ4isuyU2RYy3EoD_SWEOX1uW39bpR-KDbjSYeBPb0Jn4QtwXQw2yjQ33oRzVdyRufKF8o7kwXYW-ij6rtio6oDq0PNYIGIyMsDxKhgM5ijt4LXWz-iWQykftBMXdeSWZuU-Z51VyFOPuznUBQj";
 //!
 //!     let connect = create_action(|_| async {
 //!         match sp::connect().await {
 //!             Ok(_) => log!("connected"),
-//!             Err(e) => log!("error {:?}", e.as_string()),
+//!             Err(e) => log!("error {:?}", e),
 //!         };
 //!     });
 //!
-//!     let get_state = create_action(|_| async {
-//!         log!(
-//!             "{:#?}",
-//!             sp::get_current_state()
-//!                 .await
-//!                 .expect("something went wrong")
-//!                 .expect("this device is not in use be spotify connect")
+//!     create_effect(move |_| {
+//!         sp::init(
+//!             || {
+//!                 log!("oauth was called");
+//!                 token.to_string()
+//!             },
+//!             move || {
+//!                 log!("ready");
+//!                 connect.dispatch(());
+//!
+//!                 sp::add_listener!("player_state_changed", move |state: sp::StateChange| {
+//!                     log!("state changed, {}", state.track_window.current_track.name);
+//!                     set_current_song_name(state.track_window.current_track.name);
+//!                 });
+//!             },
+//!             "example player",
+//!             1.0,
+//!             false,
 //!         );
 //!     });
 //!
-//!     let (current_song_name, set_current_song_name) = create_signal(String::new());
+//!     let get_state = create_action(|_| async {
+//!         let state = sp::get_current_state().await.unwrap();
+//!         log!("{:#?}", state);
+//!     });
 //!
-//!     
-//!         let cb =move |state: StateChange| {
-//!             log!("state changed, {}", state.track_window.current_track.name);
-//!             set_current_song_name(state.track_window.current_track.name);
-//!         }
-//!         create_effect(move |_| {
-//!             if is_sp_ready() {
-//!                 log!("ready");
-//!                 connect.dispatch(());
-//!                 sp::add_listener("player_state_changed", &cb);
-//!             }
-//!         });
-//!     
+//!     let activate_player = create_action(|_| async {
+//!        sp::activate_element().await
+//!     });
 //!
+//!    
 //!     view! {
-//!         <h1>"Welcome to Leptos!"</h1>
-//!         <Suspense fallback=move || view! { <p>"Loading..."</p> }>
-//!             <button  on:click=move |_| get_state.dispatch(())>
-//!                 "state"
-//!             </button>
-//!             <p>"Current song: " {move || current_song_name()}</p>
-//!         </Suspense>
+//!         <h1>"Welcome to Leptos"</h1>
+//!         <button on:click=move |_| activate_player.dispatch(())>
+//!             "activate player"
+//!         </button>
+//!         {
+//!             move || match activate_player.value().get() {
+//!             Some(Ok(_)) => {
+//!                 view! {
+//!                     <button  on:click=move |_| get_state.dispatch(())>
+//!                         "log state in console"
+//!                     </button>
+//!                     <p>"Current song: " {current_song_name}</p>
+//!                 }.into_view()
+//!             }
+//!             Some(Err(e)) => {
+//!                 view! {
+//!                     <p>"Error activating player: " {e}</p>
+//!                 }.into_view()
+//!             }
+//!             None => {
+//!                 view! {
+//!                     <p>"Activating player..."</p>
+//!                 }.into_view()
+//!             }
+//!         }
+//!     }
+//!     
 //!     }
 //! }
 //! ```
@@ -124,7 +132,7 @@ where
 ///
 /// # Response
 /// a Promise containing a Boolean (either true or false) with the success of the connection.
-pub async fn connect() -> Result<bool, String> {
+pub async fn connect() -> Result<(), String> {
     if !js_wrapper::player_ready() {
         return Err("player not ready".into());
     }
@@ -135,7 +143,7 @@ pub async fn connect() -> Result<bool, String> {
     
     };
     match result.as_bool() {
-        Some(b) => Ok(b),
+        Some(b) => if b { Ok(()) } else { Err("could not connect".into()) },
         None => Err(format!("not bool, error: {:#?}", result)),
     }
 }
@@ -371,12 +379,16 @@ fn event_check(event: &str) -> bool {
 ///
 /// # Arguments
 /// * `event` - A valid event name. See Web Playback SDK Events.
-pub fn remove_listener(event: &str) -> Result<bool, String> {
+pub fn remove_listener(event: &str) -> Result<(), String> {
     if !js_wrapper::player_ready() {
         return Err("player not ready".into());
     }
    if event_check(event) {
-        Ok(js_wrapper::removeListener(event.to_string()))
+       if js_wrapper::removeListener(event.to_string()) {
+              Ok(())
+         } else {
+              Err("the event name is not valid with registered callbacks from add_listener".into())
+       }
     } else {
         Err("event does not exist".into())
     }
@@ -400,10 +412,7 @@ pub async fn get_current_state() -> Result<Option<State>, String> {
     if result.is_null() {
         return Ok(None);
     }
-    match  serde_wasm_bindgen::from_value(result) {
-        Ok(e) => Ok(Some(e)),
-        Err(e) => Err(format!("{:#?}",e)),
-    }
+    Ok(Some(structs::from_js(result)))
     
 }
 

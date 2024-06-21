@@ -1,9 +1,16 @@
-pub fn from_js<T>(js_value: wasm_bindgen::JsValue) -> Result<T, serde_wasm_bindgen::Error>
+use core::panic;
+
+pub fn from_js<T>(js_value: wasm_bindgen::JsValue) -> T
 where
     T: serde::de::DeserializeOwned,
 {
-    web_sys::console::log_1(&js_value);
-    serde_wasm_bindgen::from_value(js_value)
+    match serde_wasm_bindgen::from_value(js_value) {
+        Ok(value) => value,
+        Err(e) => {
+            panic!("This is a bug, submit an issue.Error deserializing JS value: {:?}", e.to_string())
+        }
+    
+    }
 }
 
 pub mod web_playback {
@@ -99,7 +106,7 @@ pub mod web_playback {
                     pub images: Vec<
                         #[derive(Serialize, Deserialize, Debug)]
                         pub struct Image{
-                            url: String,
+                            pub url: String,
                         }
                     >
                 },
@@ -115,14 +122,29 @@ pub mod web_playback {
 }
 
 pub mod state_change {
-    use crate::structs::web_playback::{Context, Album};
+    use crate::structs::web_playback::Context;
     use nestify::*;
     use serde::{Deserialize, Serialize};
 
     nest! {
         #[derive(Serialize, Deserialize, Debug)]
         pub struct Track {
-            pub album: Album,
+            pub album: 
+            #[derive(Serialize, Deserialize, Debug)]
+            pub struct Album {
+                /// Spotify Album URI
+                pub uri: String,
+                pub name: String,
+                pub images: Vec<
+                    #[derive(Serialize, Deserialize, Debug)]
+                    pub struct Image{
+                        pub url: String,
+                        pub size: String,
+                        pub width: i32,
+                        pub height: i32,
+                    }
+                >
+            },
             pub artists: Vec<
                 #[derive(Serialize, Deserialize, Debug)]
                 pub struct Artist {
@@ -137,8 +159,8 @@ pub mod state_change {
             pub linked_from: Option<
                 #[derive(Serialize, Deserialize, Debug)]
                 pub struct LinkedFrom {
-                    pub uri: String,
-                    pub id: String,
+                    pub uri: Option<String>,
+                    pub id: Option<String>,
                 }
             >,
             pub media_type: String,
@@ -197,7 +219,6 @@ pub mod state_change {
                 pub struct Restrictions {
                     pub disallow_peeking_next_reasons: Vec<String>,
                     pub disallow_peeking_prev_reasons: Vec<String>,
-                    pub disallow_resuming_reasons: Vec<String>,
                     pub disallow_seeking_reasons: Vec<String>,
                     pub disallow_skipping_next_reasons: Vec<String>,
                     pub disallow_skipping_prev_reasons: Vec<String>,

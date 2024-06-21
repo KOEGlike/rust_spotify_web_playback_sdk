@@ -9,7 +9,7 @@
 //! ```rust
 //! use rust_spotify_web_playback_sdk::prelude as sp;
 //! #[component]
-//! fn HomePage() -> impl IntoView {
+//! fn Player() -> impl IntoView {
 //!     let (is_sp_ready, set_is_sp_ready) = create_signal(false);
 //!     if cfg!(any(target_arch = "wasm32", target_arch = "wasm64")) {
 //!         let token="[Your token goes here]";
@@ -53,12 +53,10 @@
 //!
 //!     let (current_song_name, set_current_song_name) = create_signal(String::new());
 //!
-//!     if cfg!(any(target_arch = "wasm32", target_arch = "wasm64")) {
-//!         let cb =move |state: Result<StateChange, String>| {
+//!     
+//!         let cb =move |state: StateChange| {
 //!             log!("state changed, {}", state.track_window.current_track.name);
-//!             if let Ok(state) = state {         
-//!                 set_current_song_name(state.track_window.current_track.name);
-//!             }
+//!             set_current_song_name(state.track_window.current_track.name);
 //!         }
 //!         create_effect(move |_| {
 //!             if is_sp_ready() {
@@ -67,7 +65,7 @@
 //!                 sp::add_listener("player_state_changed", &cb);
 //!             }
 //!         });
-//!     }
+//!     
 //!
 //!     view! {
 //!         <h1>"Welcome to Leptos!"</h1>
@@ -96,7 +94,9 @@ pub mod prelude {
         *,
         js_wrapper::player_ready,
     };
-    pub use wasm_bindgen::prelude::*;
+    pub mod wasm_bindgen {
+        pub use wasm_bindgen::prelude::*;
+    }
 }
 
 ///this function adds the script to the document, and creates an instance of the Spotify.Player class, if you don't call this function all the other functions will be useless
@@ -149,8 +149,7 @@ pub fn disconnect() -> Result<(), String> {
     Ok(())
 }
 
-/// Create a new event listener in the Web Playback SDK. Alias for Spotify.Player#on.
-///
+
 /// # Response
 /// Returns a Boolean. Returns true if the event listener for the event_name is unique.
 ///  See #removeListener for removing existing listeners.
@@ -158,9 +157,31 @@ pub fn disconnect() -> Result<(), String> {
 /// # Arguments
 /// * `event` - A valid event name. See Web Playback SDK Events. Events type
 /// * `callback` - A callback function to be fired when the event has been executed.
-///                If the callback takes an argument, the argument will be wrapped in a Result type for conversion for js into rust.
 /// 
+/// # Events
+/// * `ready` - Emitted when the Spotify Player has been successfully connected to Spotify. 
+///             The callback will be called with a Player .
 /// 
+/// * `not_ready` - Emitted when the Spotify Player has been disconnected from Spotify.
+///                 The callback will be called with a Player .
+/// 
+/// * `player_state_changed` - Emitted when the state of the player has changed.
+///                            The callback will be called with a StateChange .
+/// 
+/// * `autoplay_failed` - Emitted when the Spotify Player has failed to autoplay.
+///                       The callback doesn't take any arguments.
+/// 
+/// * `initialization_error` - Emitted when the Spotify Player has failed to initialize. 
+///                            The callback will be called with a Error .
+/// 
+/// * `authentication_error` - Emitted when the Spotify Player has failed to authenticate.
+///                            The callback will be called with a Error .
+/// 
+/// * `account_error` - Emitted when the Spotify Player has encountered an account error.
+///                     The callback will be called with a Error .
+/// 
+/// * `playback_error` - Emitted when the Spotify Player has encountered a playback error.
+///                      The callback will be called with a Error .
 
 #[macro_export]
 macro_rules! add_listener {
@@ -168,55 +189,48 @@ macro_rules! add_listener {
         use $crate::js_wrapper::addListener;
         use $crate::structs::from_js;
         use $crate::structs::web_playback::Player;
+        use $crate::prelude::wasm_bindgen::JsValue;
+        use $crate::prelude::wasm_bindgen::Closure;
 
-        let test: Box<dyn FnMut(Result<Player, String>) + 'static> = Box::new($cb);
+        let test: Box<dyn FnMut(Player) + 'static> = Box::new($cb);
         let cb = $cb;
         let cb = move |jsv: JsValue| {
             let state = from_js(jsv);
-            match state {
-                Ok(state) => cb(Ok(state)),
-                Err(e) => cb(Err(format!("{}", e))),
-            }
+            cb(state)
         };
         let closure = Closure::wrap(Box::new(cb) as Box<dyn FnMut(JsValue)>);
         let closure_ref = Box::leak(Box::new(closure)) as &'static Closure<dyn FnMut(JsValue)>;
         addListener("ready".into(), closure_ref)
     }};
     ("not_ready", $cb:expr) => {{
-        use std::result::Result;
-        use std::string::String;
         use $crate::js_wrapper::addListener;
         use $crate::structs::from_js;
         use $crate::structs::web_playback::Player;
+        use $crate::prelude::wasm_bindgen::JsValue;
+        use $crate::prelude::wasm_bindgen::Closure;
 
-        let test: Box<dyn FnMut(Result<Player, String>) + 'static> = Box::new($cb);
+        let test: Box<dyn FnMut(Player) + 'static> = Box::new($cb);
         let cb = $cb;
         let cb = move |jsv: JsValue| {
             let state = from_js(jsv);
-            match state {
-                Ok(state) => cb(Ok(state)),
-                Err(e) => cb(Err(format!("{}", e))),
-            }
+            cb(state)
         };
         let closure = Closure::wrap(Box::new(cb) as Box<dyn FnMut(JsValue)>);
         let closure_ref = Box::leak(Box::new(closure)) as &'static Closure<dyn FnMut(JsValue)>;
         addListener("not_ready".into(), closure_ref)
     }};
     ("player_state_changed", $cb:expr) => {{
-        use std::result::Result;
-        use std::string::String;
         use $crate::js_wrapper::addListener;
         use $crate::structs::from_js;
         use $crate::structs::state_change::StateChange;
+        use $crate::prelude::wasm_bindgen::JsValue;
+        use $crate::prelude::wasm_bindgen::Closure;
 
-        let test: Box<dyn FnMut(Result<StateChange, String>) + 'static> = Box::new($cb);
+        let test: Box<dyn FnMut(StateChange) + 'static> = Box::new($cb);
         let cb = $cb;
         let cb = move |jsv: JsValue| {
             let state = from_js(jsv);
-            match state {
-                Ok(state) => cb(Ok(state)),
-                Err(e) => cb(Err(format!("{}", e))),
-            }
+            cb(state)
         };
         let closure = Closure::wrap(Box::new(cb) as Box<dyn FnMut(JsValue)>);
         let closure_ref = Box::leak(Box::new(closure)) as &'static Closure<dyn FnMut(JsValue)>;
@@ -225,6 +239,7 @@ macro_rules! add_listener {
     ("autoplay_failed", $cb:expr) => {{
         use std::result::Result;
         use std::string::String;
+        use $crate::prelude::wasm_bindgen::Closure;
         use $crate::js_wrapper::addListenerAutoplayFailed;
 
         let test: Box<dyn FnMut() + 'static> = Box::new($cb);
@@ -240,15 +255,14 @@ macro_rules! add_listener {
         use $crate::js_wrapper::addListener;
         use $crate::structs::from_js;
         use $crate::structs::web_playback::Error;
+        use $crate::prelude::wasm_bindgen::JsValue;
+        use $crate::prelude::wasm_bindgen::Closure;
 
-        let test: Box<dyn FnMut(Result<Error, String>) + 'static> = Box::new($cb);
+        let test: Box<dyn FnMut(Error) + 'static> = Box::new($cb);
         let cb = $cb;
         let cb = move |jsv: JsValue| {
             let state = from_js(jsv);
-            match state {
-                Ok(state) => cb(Ok(state)),
-                Err(e) => cb(Err(format!("{}", e))),
-            }
+            cb(state)
         };
         let closure = Closure::wrap(Box::new(cb) as Box<dyn FnMut(JsValue)>);
         let closure_ref = Box::leak(Box::new(closure)) as &'static Closure<dyn FnMut(JsValue)>;
@@ -260,15 +274,14 @@ macro_rules! add_listener {
         use $crate::js_wrapper::addListener;
         use $crate::structs::from_js;
         use $crate::structs::web_playback::Error;
+        use $crate::prelude::wasm_bindgen::JsValue;
+        use $crate::prelude::wasm_bindgen::Closure;
 
-        let test: Box<dyn FnMut(Result<Error, String>) + 'static> = Box::new($cb);
+        let test: Box<dyn FnMut(Error) + 'static> = Box::new($cb);
         let cb = $cb;
         let cb = move |jsv: JsValue| {
             let state = from_js(jsv);
-            match state {
-                Ok(state) => cb(Ok(state)),
-                Err(e) => cb(Err(format!("{}", e))),
-            }
+            cb(state)
         };
         let closure = Closure::wrap(Box::new(cb) as Box<dyn FnMut(JsValue)>);
         let closure_ref = Box::leak(Box::new(closure)) as &'static Closure<dyn FnMut(JsValue)>;
@@ -280,15 +293,14 @@ macro_rules! add_listener {
         use $crate::js_wrapper::addListener;
         use $crate::structs::from_js;
         use $crate::structs::web_playback::Error;
+        use $crate::prelude::wasm_bindgen::JsValue;
+        use $crate::prelude::wasm_bindgen::Closure;
 
-        let test: Box<dyn FnMut(Result<Error, String>) + 'static> = Box::new($cb);
+        let test: Box<dyn FnMut(Error) + 'static> = Box::new($cb);
         let cb = $cb;
         let cb = move |jsv: JsValue| {
             let state = from_js(jsv);
-            match state {
-                Ok(state) => cb(Ok(state)),
-                Err(e) => cb(Err(format!("{}", e))),
-            }
+            cb(state)
         };
         let closure = Closure::wrap(Box::new(cb) as Box<dyn FnMut(JsValue)>);
         let closure_ref = Box::leak(Box::new(closure)) as &'static Closure<dyn FnMut(JsValue)>;
@@ -300,15 +312,14 @@ macro_rules! add_listener {
         use $crate::js_wrapper::addListener;
         use $crate::structs::from_js;
         use $crate::structs::web_playback::Error;
+        use $crate::prelude::wasm_bindgen::JsValue;
+        use $crate::prelude::wasm_bindgen::Closure;
 
-        let test: Box<dyn FnMut(Result<Error, String>) + 'static> = Box::new($cb);
+        let test: Box<dyn FnMut(Error) + 'static> = Box::new($cb);
         let cb = $cb;
         let cb = move |jsv: JsValue| {
             let state = from_js(jsv);
-            match state {
-                Ok(state) => cb(Ok(state)),
-                Err(e) => cb(Err(format!("{}", e))),
-            }
+            cb(state)
         };
         let closure = Closure::wrap(Box::new(cb) as Box<dyn FnMut(JsValue)>);
         let closure_ref = Box::leak(Box::new(closure)) as &'static Closure<dyn FnMut(JsValue)>;

@@ -45,14 +45,14 @@ pub mod web_playback {
             pub disallows:
                 #[derive(Serialize, Deserialize, Debug)]
                 pub struct Disallows {
-                    /// The current track. By default, these fields
-                    pub pausing: bool,
+                    // The current track. By default, these fields
+                    
                     /// will either be set to false or undefined, which
                     pub peeking_next: bool,
                     /// indicates that the particular operation is
                     pub peeking_prev: bool,
-                    /// allowed. When the field is set to `true`, this
-                    pub resuming: bool,
+                    // allowed. When the field is set to `true`, this
+                    
                     /// means that the operation is not permitted. For
                     pub seeking: bool,
                     /// example, `skipping_next`, `skipping_prev` and
@@ -196,6 +196,7 @@ pub mod state_change {
                 },
             pub duration: i32,
             pub loading: bool,
+            pub paused:bool,
             pub playback_features:
                 #[derive(Serialize, Deserialize, Debug)]
                 pub struct Features {

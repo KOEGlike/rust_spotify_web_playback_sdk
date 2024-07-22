@@ -7,9 +7,11 @@ where
     match serde_wasm_bindgen::from_value(js_value) {
         Ok(value) => value,
         Err(e) => {
-            panic!("This is a bug, submit an issue.Error deserializing JS value: {:?}", e.to_string())
+            panic!(
+                "This is a bug, submit an issue.Error deserializing JS value: {:?}",
+                e.to_string()
+            )
         }
-    
     }
 }
 
@@ -45,20 +47,22 @@ pub mod web_playback {
             pub disallows:
                 #[derive(Serialize, Deserialize, Debug)]
                 pub struct Disallows {
-                    // The current track. By default, these fields
-                    
-                    /// will either be set to false or undefined, which
-                    pub peeking_next: bool,
-                    /// indicates that the particular operation is
-                    pub peeking_prev: bool,
-                    // allowed. When the field is set to `true`, this
-                    
-                    /// means that the operation is not permitted. For
-                    pub seeking: bool,
-                    /// example, `skipping_next`, `skipping_prev` and
-                    pub skipping_next: bool,
-                    /// `seeking` will be set to `true` when playing an ada track.
-                    pub skipping_prev: bool
+                    /**A simplified set of restriction controls for
+                    The current track. By default, these fields
+                    will either be set to false or undefined, which
+                    indicates that the particular operation is
+                    allowed. When the field is set to `true`, this
+                    means that the operation is not permitted. For
+                    example, `skipping_next`, `skipping_prev` and
+                    `seeking` will be set to `true` when playing an
+                    ad track.*/
+                    pub pausing: Option<bool>,
+                    pub peeking_next: Option<bool>,
+                    pub peeking_prev: Option<bool>,
+                    pub resuming: Option<bool>,
+                    pub seeking: Option<bool>,
+                    pub skipping_next: Option<bool>,
+                    pub skipping_prev: Option<bool>,
                 },
             /// Whether the current track is paused.
             pub paused: bool,
@@ -129,7 +133,7 @@ pub mod state_change {
     nest! {
         #[derive(Serialize, Deserialize, Debug)]
         pub struct Track {
-            pub album: 
+            pub album:
             #[derive(Serialize, Deserialize, Debug)]
             pub struct Album {
                 /// Spotify Album URI
@@ -172,7 +176,7 @@ pub mod state_change {
             pub name: String,
             pub track_type: String,
             pub uid: String,
-            pub uri: String, 
+            pub uri: String,
         }
     }
 
@@ -231,7 +235,7 @@ pub mod state_change {
             pub shuffle: bool,
             pub shuffle_mode: i8,
             pub timestamp: i64,
-            pub track_window: 
+            pub track_window:
                 #[derive(Serialize, Deserialize, Debug)]
                 pub struct TrackWindow {
                     pub current_track: Track,

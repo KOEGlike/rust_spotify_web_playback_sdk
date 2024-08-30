@@ -1,4 +1,7 @@
 use core::panic;
+use nestify::*;
+use nestify::*;
+use serde::{Deserialize, Serialize};
 
 pub fn from_js<T>(js_value: wasm_bindgen::JsValue) -> T
 where
@@ -15,9 +18,58 @@ where
     }
 }
 
+nest! {
+    #[derive(Serialize, Deserialize, Debug)]
+    pub struct Track {
+        pub album:
+        #[derive(Serialize, Deserialize, Debug)]
+        pub struct Album {
+            /// Spotify Album URI
+            pub uri: String,
+            pub name: String,
+            pub images: Vec<
+                #[derive(Serialize, Deserialize, Debug)]
+                pub struct Image{
+                    pub url: String,
+                    pub size: String,
+                    pub width: i32,
+                    pub height: i32,
+                }
+            >
+        },
+        pub artists: Vec<
+            #[derive(Serialize, Deserialize, Debug)]
+            pub struct Artist {
+                pub uri: String,
+                pub url: String,
+                pub name: String,
+            }
+        >,
+        pub duration_ms: u32,
+        pub id: String,
+        pub is_playable: bool,
+        pub linked_from: Option<
+            #[derive(Serialize, Deserialize, Debug)]
+            pub struct LinkedFrom {
+                pub uri: Option<String>,
+                pub id: Option<String>,
+            }
+        >,
+        pub media_type: String,
+        pub metadata: Option<
+            #[derive(Serialize, Deserialize, Debug)]
+            pub struct Metadata {
+            }
+        >,
+        pub name: String,
+        pub track_type: String,
+        pub uid: String,
+        pub uri: String,
+    }
+}
+
 pub mod web_playback {
-    use nestify::*;
-    use serde::{Deserialize, Serialize};
+    use super::*;
     #[derive(Serialize, Deserialize, Debug)]
     pub struct Player {
         pub device_id: String,
@@ -84,101 +136,12 @@ pub mod web_playback {
                 }
         }
     }
-
-    nest! {
-        #[derive(Serialize, Deserialize, Debug)]
-        pub struct Track{
-            /// Spotify URI
-            pub uri: String,
-            /// Spotify ID from URI (can be null)
-            pub id: Option<String>,
-            /// Content type: can be "track", "episode" or "ad"
-            #[serde(rename = "type")]
-            pub track_type: String,
-            /// Type of file: can be "audio" or "video"
-            pub media_type: String,
-            /// Name of content
-            pub name: String,
-            /// Flag indicating whether it can be played
-            pub is_playable: bool,
-            pub album:
-                #[derive(Serialize, Deserialize, Debug)]
-                pub struct Album {
-                    /// Spotify Album URI
-                    pub uri: String,
-                    pub name: String,
-                    pub images: Vec<
-                        #[derive(Serialize, Deserialize, Debug)]
-                        pub struct Image{
-                            pub url: String,
-                        }
-                    >
-                },
-            pub artists: Vec<
-                #[derive(Serialize, Deserialize, Debug)]
-                pub struct Artist{
-                    pub uri: String,
-                    pub name: String,
-                }
-            >
-        }
-    }
 }
 
 pub mod state_change {
+    use super::*;
     use crate::structs::web_playback::Context;
-    use nestify::*;
-    use serde::{Deserialize, Serialize};
 
-    nest! {
-        #[derive(Serialize, Deserialize, Debug)]
-        pub struct Track {
-            pub album:
-            #[derive(Serialize, Deserialize, Debug)]
-            pub struct Album {
-                /// Spotify Album URI
-                pub uri: String,
-                pub name: String,
-                pub images: Vec<
-                    #[derive(Serialize, Deserialize, Debug)]
-                    pub struct Image{
-                        pub url: String,
-                        pub size: String,
-                        pub width: i32,
-                        pub height: i32,
-                    }
-                >
-            },
-            pub artists: Vec<
-                #[derive(Serialize, Deserialize, Debug)]
-                pub struct Artist {
-                    pub uri: String,
-                    pub url: String,
-                    pub name: String,
-                }
-            >,
-            pub duration_ms: i32,
-            pub id: String,
-            pub is_playable: bool,
-            pub linked_from: Option<
-                #[derive(Serialize, Deserialize, Debug)]
-                pub struct LinkedFrom {
-                    pub uri: Option<String>,
-                    pub id: Option<String>,
-                }
-            >,
-            pub media_type: String,
-            pub metadata: Option<
-                #[derive(Serialize, Deserialize, Debug)]
-                pub struct Metadata {
-                }
-            >,
-            pub name: String,
-            pub track_type: String,
-            pub uid: String,
-            pub uri: String,
-        }
-    }
 
     nest! {
         #[derive(Serialize, Deserialize, Debug)]

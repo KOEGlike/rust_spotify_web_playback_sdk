@@ -97,7 +97,8 @@ pub mod prelude {
     pub use crate::{
         structs::{
             state_change::StateChange,
-            web_playback::{Error, Player, State, Track},
+            web_playback::{Error, Player, State},
+            Track,
         },
         *,
         js_wrapper::player_ready,
@@ -147,6 +148,8 @@ pub async fn connect() -> Result<(), String> {
         None => Err(format!("not bool, error: {:#?}", result)),
     }
 }
+
+
 
 /// Closes the current session our Web Playback SDK has with Spotify.
 pub fn disconnect() -> Result<(), String> {
@@ -262,6 +265,7 @@ macro_rules! add_listener {
             let test: Box<dyn FnMut(StateChange) + 'static> = Box::new($cb);
         let cb = $cb;
         let cb = move |jsv: JsValue| {
+            //web_sys::console::log_1(&jsv);
             let state = from_js(jsv);
             cb(state)
         };
@@ -476,6 +480,7 @@ pub async fn get_current_state() -> Result<Option<State>, String> {
         Err(e) => return Err(format!("{:#?}",e)),
     
     };
+   // web_sys::console::log_1(&result);
     if result.is_null() {
         return Ok(None);
     }

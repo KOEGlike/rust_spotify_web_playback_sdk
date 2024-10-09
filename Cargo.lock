@@ -95,7 +95,7 @@ version = "0.2.2"
 dependencies = [
  "js-sys",
  "nestify",
- "rust_spotify_web_playback_sdk_macro",
+ "rust_spotify_web_playback_sdk_macro 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde",
  "serde-wasm-bindgen",
  "wasm-bindgen",
@@ -106,6 +106,17 @@ dependencies = [
 [[package]]
 name = "rust_spotify_web_playback_sdk_macro"
 version = "0.2.2"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "rust_spotify_web_playback_sdk_macro"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "743f3dd90d539a9dbf62d1ef05a1bb731f38d19e692793a141a94d17fa30491f"
 dependencies = [
  "proc-macro2",
  "quote",

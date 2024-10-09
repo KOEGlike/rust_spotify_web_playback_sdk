@@ -59,7 +59,7 @@ pub fn add_listener(input: TokenStream) -> TokenStream {
         {
             use rust_spotify_web_playback_sdk::js_wrapper::*;
             use rust_spotify_web_playback_sdk::structs::from_js;
-            use rust_spotify_web_playback_sdk::structs::web_playback::*;
+            use rust_spotify_web_playback_sdk::prelude::*;
             use rust_spotify_web_playback_sdk::prelude::wasm_bindgen::prelude::JsValue;
             use rust_spotify_web_playback_sdk::prelude::wasm_bindgen::prelude::Closure;
             use rust_spotify_web_playback_sdk::js_wrapper;

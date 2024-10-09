@@ -3,6 +3,11 @@ name = "rust_spotify_web_playback_sdk_macro"
 edition = "2021"
 publish = true
 version = "0.2.2"
+repository = "https://github.com/KOEGlike/rust_spotify_web_playback_sdk"
+license = "MIT OR Apache-2.0"
+keywords = ["Spotify", "SDK", "macro", "wrapper", "wasm"]
+description = "the macros for the rust_spotify_web_playback_sdk"
+documentation = "https://docs.rs/rust_spotify_web_playback_sdk_macro/"
 
 [lib]
 proc-macro = true

@@ -90,24 +90,22 @@
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
-
 pub mod js_wrapper;
 pub mod structs;
 pub mod prelude {
     pub use crate::{
+        js_wrapper::player_ready,
         structs::{
             state_change::StateChange,
             web_playback::{Error, Player, State},
             Track,
         },
         *,
-        js_wrapper::player_ready,
     };
     pub mod wasm_bindgen {
         pub use wasm_bindgen::*;
     }
     pub use rust_spotify_web_playback_sdk_macro::add_listener;
-    
 }
 
 ///this function adds the script to the document, and creates an instance of the Spotify.Player class, if you don't call this function all the other functions will be useless
@@ -141,17 +139,20 @@ pub async fn connect() -> Result<(), String> {
     }
     let promise = js_wrapper::connect();
     let result = match JsFuture::from(promise).await {
-        Ok(e) => {e},
-        Err(e) => return Err(format!("{:#?}",e)),
-    
+        Ok(e) => e,
+        Err(e) => return Err(format!("{:#?}", e)),
     };
     match result.as_bool() {
-        Some(b) => if b { Ok(()) } else { Err("could not connect".into()) },
+        Some(b) => {
+            if b {
+                Ok(())
+            } else {
+                Err("could not connect".into())
+            }
+        }
         None => Err(format!("not bool, error: {:#?}", result)),
     }
 }
-
-
 
 /// Closes the current session our Web Playback SDK has with Spotify.
 pub fn disconnect() -> Result<(), String> {
@@ -161,8 +162,6 @@ pub fn disconnect() -> Result<(), String> {
     js_wrapper::disconnect();
     Ok(())
 }
-
-
 
 /// Remove a specific event listener in the Web Playback SDK.
 ///
@@ -212,12 +211,12 @@ pub fn remove_listener(event: &str) -> Result<(), String> {
     if !js_wrapper::player_ready() {
         return Err("player not ready".into());
     }
-   if event_check(event) {
-       if js_wrapper::removeListener(event.to_string()) {
-              Ok(())
-         } else {
-              Err("the event name is not valid with registered callbacks from add_listener".into())
-       }
+    if event_check(event) {
+        if js_wrapper::removeListener(event.to_string()) {
+            Ok(())
+        } else {
+            Err("the event name is not valid with registered callbacks from add_listener".into())
+        }
     } else {
         Err("event does not exist".into())
     }
@@ -234,16 +233,14 @@ pub async fn get_current_state() -> Result<Option<State>, String> {
     }
     let promise = js_wrapper::getCurrentState();
     let result = match JsFuture::from(promise).await {
-        Ok(e) => {e},
-        Err(e) => return Err(format!("{:#?}",e)),
-    
+        Ok(e) => e,
+        Err(e) => return Err(format!("{:#?}", e)),
     };
-   // web_sys::console::log_1(&result);
+    // web_sys::console::log_1(&result);
     if result.is_null() {
         return Ok(None);
     }
     Ok(Some(structs::from_js(result)))
-    
 }
 
 /// Rename the Spotify Player device. This is visible across all Spotify Connect devices.
@@ -260,7 +257,7 @@ pub async fn set_name(name: String) -> Result<(), String> {
     let promise = js_wrapper::setName(name);
     match JsFuture::from(promise).await {
         Ok(_) => Ok(()),
-        Err(e) => Err(format!("{:#?}",e)),
+        Err(e) => Err(format!("{:#?}", e)),
     }
 }
 
@@ -273,15 +270,14 @@ pub async fn get_volume() -> Result<f32, String> {
         return Err("player not ready".into());
     }
     let promise = js_wrapper::getVolume();
-    let result=match JsFuture::from(promise).await {
-        Ok(e) => {e},
-        Err(e) => return Err(format!("{:#?}",e)),
+    let result = match JsFuture::from(promise).await {
+        Ok(e) => e,
+        Err(e) => return Err(format!("{:#?}", e)),
     };
     match serde_wasm_bindgen::from_value(result) {
         Ok(e) => Ok(e),
-        Err(e) => Err(format!("{:#?}",e)),
+        Err(e) => Err(format!("{:#?}", e)),
     }
-   
 }
 
 /// Set the local volume for the Web Playback SDK.
@@ -298,7 +294,7 @@ pub async fn set_volume(volume: f32) -> Result<(), String> {
     let promise = js_wrapper::setVolume(volume);
     match JsFuture::from(promise).await {
         Ok(_) => Ok(()),
-        Err(e) => Err(format!("{:#?}",e)),
+        Err(e) => Err(format!("{:#?}", e)),
     }
 }
 
@@ -313,7 +309,7 @@ pub async fn pause() -> Result<(), String> {
     let promise = js_wrapper::pause();
     match JsFuture::from(promise).await {
         Ok(_) => Ok(()),
-        Err(e) => Err(format!("{:#?}",e)),
+        Err(e) => Err(format!("{:#?}", e)),
     }
 }
 
@@ -328,7 +324,7 @@ pub async fn resume() -> Result<(), String> {
     let promise = js_wrapper::resume();
     match JsFuture::from(promise).await {
         Ok(_) => Ok(()),
-        Err(e) => Err(format!("{:#?}",e)),
+        Err(e) => Err(format!("{:#?}", e)),
     }
 }
 
@@ -343,7 +339,7 @@ pub async fn toggle_play() -> Result<(), String> {
     let promise = js_wrapper::togglePlay();
     match JsFuture::from(promise).await {
         Ok(_) => Ok(()),
-        Err(e) => Err(format!("{:#?}",e)),
+        Err(e) => Err(format!("{:#?}", e)),
     }
 }
 
@@ -361,7 +357,7 @@ pub async fn seek(position_ms: u32) -> Result<(), String> {
     let promise = js_wrapper::seek(position_ms);
     match JsFuture::from(promise).await {
         Ok(_) => Ok(()),
-        Err(e) => Err(format!("{:#?}",e)),
+        Err(e) => Err(format!("{:#?}", e)),
     }
 }
 
@@ -376,7 +372,7 @@ pub async fn previous_track() -> Result<(), String> {
     let promise = js_wrapper::previousTrack();
     match JsFuture::from(promise).await {
         Ok(_) => Ok(()),
-        Err(e) => Err(format!("{:#?}",e)),
+        Err(e) => Err(format!("{:#?}", e)),
     }
 }
 
@@ -391,7 +387,7 @@ pub async fn next_track() -> Result<(), String> {
     let promise = js_wrapper::nextTrack();
     match JsFuture::from(promise).await {
         Ok(_) => Ok(()),
-        Err(e) => Err(format!("{:#?}",e)),
+        Err(e) => Err(format!("{:#?}", e)),
     }
 }
 
@@ -409,7 +405,6 @@ pub async fn activate_element() -> Result<(), String> {
     let promise = js_wrapper::activateElement();
     match JsFuture::from(promise).await {
         Ok(_) => Ok(()),
-        Err(e) => Err(format!("{:#?}",e)),
+        Err(e) => Err(format!("{:#?}", e)),
     }
-    
 }

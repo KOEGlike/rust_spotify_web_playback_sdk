@@ -3,8 +3,7 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
-use syn::punctuated::Punctuated;
-use syn::{parse_macro_input, Expr, ExprClosure, LitStr, Token};
+use syn::{parse_macro_input, ExprClosure, LitStr, Token};
 
 /// Struct to parse the macro input as two separate arguments
 struct ListenerInput {

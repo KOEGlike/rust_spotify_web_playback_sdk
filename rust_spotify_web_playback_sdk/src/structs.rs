@@ -1,6 +1,5 @@
 use core::panic;
 use nestify::*;
-use nestify::*;
 use serde::{Deserialize, Serialize};
 
 pub fn from_js<T>(js_value: wasm_bindgen::JsValue) -> T

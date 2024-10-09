@@ -1,6 +1,8 @@
 [package]
 name = "rust_spotify_web_playback_sdk_macro"
 edition = "2021"
+publish = true
+version = "0.2.2"
 
 [lib]
 proc-macro = true

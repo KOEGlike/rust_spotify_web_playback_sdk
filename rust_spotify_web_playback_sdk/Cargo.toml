@@ -7,6 +7,8 @@ license = "MIT OR Apache-2.0"
 keywords = ["Spotify", "SDK", "web", "wrapper", "wasm"]
 description = "a wrapper around the spotify Web Playback SDK for wasm porjects "
 documentation = "https://docs.rs/rust_spotify_web_playback_sdk/"
+publish = true
+version = "0.2.2"
 
 [dependencies]
 js-sys = "0.3"

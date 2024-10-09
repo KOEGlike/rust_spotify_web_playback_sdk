@@ -1,7 +1,7 @@
 [package]
 name = "rust_spotify_web_playback_sdk"
 edition = "2021"
-readme = "README.md"
+readme = "../README.md"
 repository = "https://github.com/KOEGlike/rust_spotify_web_playback_sdk"
 license = "MIT OR Apache-2.0"
 keywords = ["Spotify", "SDK", "web", "wrapper", "wasm"]

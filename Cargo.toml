@@ -1,19 +1,10 @@
-[package]
-name = "rust_spotify_web_playback_sdk"
-version = "0.2.1"
-edition = "2021"
-readme = "README.md"
-repository = "https://github.com/KOEGlike/rust_spotify_web_playback_sdk"
-license = "MIT OR Apache-2.0"
-keywords = ["Spotify", "SDK", "web", "wrapper", "wasm"]
-description = "a wrapper around the spotify Web Playback SDK for wasm porjects "
-documentation = "https://docs.rs/rust_spotify_web_playback_sdk/"
+[workspace]
+members = [
+    "rust_spotify_web_playback_sdk",
+    "rust_spotify_web_playback_sdk_macro",
+]
+resolver = "2"
 
-[dependencies]
-js-sys = "0.3"
-web-sys = "0.3"
-wasm-bindgen-futures = "0.4"
-nestify = "0.3"
-serde-wasm-bindgen = "0.6"
-serde = { version = "1", features = ["derive"] }
-wasm-bindgen = "0.2"
+[workspace.package]
+version = "0.2.2"
+edition = "2021"

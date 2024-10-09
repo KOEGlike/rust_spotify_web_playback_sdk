@@ -1,7 +1,9 @@
 {
     "cSpell.words": [
+        "elems",
         "hifi",
         "nestify"
     ],
     "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
+
 }

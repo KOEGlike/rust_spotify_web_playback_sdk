@@ -108,13 +108,6 @@ pub mod prelude {
     pub use rust_spotify_web_playback_sdk_macro::*;
 }
 
-fn d() {
-    use crate as rust_spotify_web_playback_sdk;
-    use crate::prelude::*;
-    let cb = |ev| {};
-    add_listener!("ready", cb);
-}
-
 ///this function adds the script to the document, and creates an instance of the Spotify.Player class, if you don't call this function all the other functions will be useless
 /// # Arguments
 /// * `oauth` - A closure that returns a String containing the Spotify OAuth token.

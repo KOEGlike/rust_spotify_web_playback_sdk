@@ -3,32 +3,30 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
-use syn::{parse_macro_input, ExprClosure, LitStr, Token};
+use syn::{parse_macro_input, Expr, LitStr, Token};
 
 /// Struct to parse the macro input as two separate arguments
 struct ListenerInput {
     event_name: LitStr,
     _comma: Token![,],
-    callback: ExprClosure,
-}
+    callback: Expr,  }
 
 impl Parse for ListenerInput {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         Ok(ListenerInput {
             event_name: input.parse()?,
             _comma: input.parse()?,
-            callback: input.parse()?,
+            callback: input.parse()?,  
         })
     }
 }
 
 #[proc_macro]
 pub fn add_listener(input: TokenStream) -> TokenStream {
-    // Parse the input as our custom ListenerInput struct
     let ListenerInput {
         event_name,
-        _comma,
         callback,
+        ..
     } = parse_macro_input!(input as ListenerInput);
 
     let event_name_str = event_name.value();
@@ -68,7 +66,7 @@ pub fn add_listener(input: TokenStream) -> TokenStream {
                 let err: String = "player not ready".into();
                 Err(err)
             } else {
-                let mut cb: #closure_type = Box::new(#callback);
+                let mut cb: #closure_type = Box::new(#callback); 
                 let cb = move |jsv: JsValue| {
                     let state = from_js(jsv);
                     cb(state)

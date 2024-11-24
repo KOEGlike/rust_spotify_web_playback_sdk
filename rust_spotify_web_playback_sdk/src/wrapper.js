@@ -20,6 +20,7 @@ function init(oauth, on_ready, name, volume, enableMediaSession) {
 }
 
 function player_ready() {
+    console.log(player);
     if(player==="not ready")
         return false;
     return true;

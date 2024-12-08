@@ -6,8 +6,14 @@ extern "C" {
     #[wasm_bindgen]
     pub fn init(oauth:&Closure<dyn FnMut()->String>, on_ready:&Closure<dyn FnMut()>,name:String, volume:f32, enable_media_session:bool);
     
+    /// Check if the player object is ready
     #[wasm_bindgen]
     pub fn player_ready() -> bool;
+
+    /// Log the player object to the console
+    #[wasm_bindgen]
+    pub fn log_player();
+
     #[wasm_bindgen( js_name=connect, js_namespace=player)]
     pub fn connect() -> Promise;
 

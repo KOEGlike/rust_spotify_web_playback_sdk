@@ -26,7 +26,11 @@ function player_ready() {
     return true;
 }
 
+function log_player() {
+    console.log(player);
+};
 
 
-export {player_ready,init , player}
+
+export {player_ready,init , player, log_player};
 

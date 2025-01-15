@@ -30,7 +30,7 @@ nest! {
                 #[derive(Serialize, Deserialize, Debug)]
                 pub struct Image{
                     pub url: String,
-                    pub size: String,
+                    pub size: Option<String>,
                     pub width: i32,
                     pub height: i32,
                 }

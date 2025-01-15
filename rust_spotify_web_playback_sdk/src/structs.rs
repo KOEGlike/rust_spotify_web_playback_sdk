@@ -31,8 +31,8 @@ nest! {
                 pub struct Image{
                     pub url: String,
                     pub size: Option<String>,
-                    pub width: i32,
-                    pub height: i32,
+                    pub width: Option<i32>,
+                    pub height: Option<i32>,
                 }
             >
         },

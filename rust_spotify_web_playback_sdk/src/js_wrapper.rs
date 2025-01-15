@@ -4,7 +4,7 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen(module = "/src/wrapper.js")]
 extern "C" {
     #[wasm_bindgen]
-    pub fn init(oauth:&Closure<dyn FnMut()->String>, on_ready:&Closure<dyn FnMut()>,name:String, volume:f32, enable_media_session:bool);
+    pub fn init(oauth: &Closure<dyn FnMut() -> String>, on_ready: &Closure<dyn FnMut()>, name: String, volume: f32, enable_media_session: bool);
     
     /// Check if the player object is ready
     #[wasm_bindgen]
@@ -14,55 +14,54 @@ extern "C" {
     #[wasm_bindgen]
     pub fn log_player();
 
-    #[wasm_bindgen( js_name=connect)]
+    #[wasm_bindgen(js_name = connect)]
     pub fn connect() -> Promise;
 
-    #[wasm_bindgen(js_name=disconnect)]
+    #[wasm_bindgen(js_name = disconnect)]
     pub fn disconnect();
 
-    #[wasm_bindgen( js_name=addListener)]
+    #[wasm_bindgen(js_name = addListener)]
     pub fn addListener(event: String, callback: &Closure<dyn FnMut(JsValue)>) -> bool;
 
-    #[wasm_bindgen( js_name=addListener)]
+    #[wasm_bindgen(js_name = addListenerAutoplayFailed)]
     pub fn addListenerAutoplayFailed(event: String, callback: &Closure<dyn FnMut()>) -> bool;
 
-    #[wasm_bindgen( js_name=removeListener)]
+    #[wasm_bindgen(js_name = removeListener)]
     pub fn removeListener(event: String) -> bool;
 
-    #[wasm_bindgen( js_name=removeListener)]
+    #[wasm_bindgen(js_name = removeSpecificListener)]
     pub fn removeSpecificListener(event: String, callback: &Closure<dyn FnMut(JsValue)>) -> bool;
 
-    #[wasm_bindgen( js_name=getCurrentState)]
+    #[wasm_bindgen(js_name = getCurrentState)]
     pub fn getCurrentState() -> Promise;
 
-    #[wasm_bindgen( js_name=setName)]
+    #[wasm_bindgen(js_name = setName)]
     pub fn setName(name: String) -> Promise;
 
-    #[wasm_bindgen( js_name=getVolume)]
+    #[wasm_bindgen(js_name = getVolume)]
     pub fn getVolume() -> Promise;
 
-    #[wasm_bindgen(js_name=setVolume)]
+    #[wasm_bindgen(js_name = setVolume)]
     pub fn setVolume(volume: f32) -> Promise;
 
-    #[wasm_bindgen( js_name=pause)]
+    #[wasm_bindgen(js_name = pause)]
     pub fn pause() -> Promise;
 
-    #[wasm_bindgen( js_name=resume)]
+    #[wasm_bindgen(js_name = resume)]
     pub fn resume() -> Promise;
 
-    #[wasm_bindgen( js_name=togglePlay)]
+    #[wasm_bindgen(js_name = togglePlay)]
     pub fn togglePlay() -> Promise;
 
-    #[wasm_bindgen( js_name=seek)]
+    #[wasm_bindgen(js_name = seek)]
     pub fn seek(position_ms: u32) -> Promise;
 
-    #[wasm_bindgen( js_name=previousTrack)]
+    #[wasm_bindgen(js_name = previousTrack)]
     pub fn previousTrack() -> Promise;
 
-    #[wasm_bindgen( js_name=nextTrack)]
+    #[wasm_bindgen(js_name = nextTrack)]
     pub fn nextTrack() -> Promise;
 
-    #[wasm_bindgen( js_name=activateElement)]
+    #[wasm_bindgen(js_name = activateElement)]
     pub fn activateElement() -> Promise;
-
 }

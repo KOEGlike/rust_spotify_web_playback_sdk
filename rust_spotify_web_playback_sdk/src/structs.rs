@@ -184,15 +184,15 @@ pub mod state_change {
             pub restrictions:
                 #[derive(Serialize, Deserialize, Debug)]
                 pub struct Restrictions {
-                    pub disallow_peeking_next_reasons: Vec<String>,
-                    pub disallow_peeking_prev_reasons: Vec<String>,
-                    pub disallow_seeking_reasons: Vec<String>,
-                    pub disallow_skipping_next_reasons: Vec<String>,
-                    pub disallow_skipping_prev_reasons: Vec<String>,
-                    pub disallow_toggling_repeat_context_reasons: Vec<String>,
-                    pub disallow_toggling_repeat_track_reasons: Vec<String>,
-                    pub disallow_toggling_shuffle_reasons: Vec<String>,
-                    pub undefined:Vec<String>
+                    pub disallow_peeking_next_reasons: Option<Vec<String>>,
+                    pub disallow_peeking_prev_reasons: Option<Vec<String>>,
+                    pub disallow_seeking_reasons: Option<Vec<String>>,
+                    pub disallow_skipping_next_reasons: Option<Vec<String>>,
+                    pub disallow_skipping_prev_reasons: Option<Vec<String>>,
+                    pub disallow_toggling_repeat_context_reasons: Option<Vec<String>>,
+                    pub disallow_toggling_repeat_track_reasons: Option<Vec<String>>,
+                    pub disallow_toggling_shuffle_reasons: Option<Vec<String>>,
+                    pub undefined:Option<Vec<String>>
                 },
             pub shuffle: bool,
             pub shuffle_mode: i8,

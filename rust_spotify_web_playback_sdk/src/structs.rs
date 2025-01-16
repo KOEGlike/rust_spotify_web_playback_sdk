@@ -40,7 +40,7 @@ nest! {
             #[derive(Serialize, Deserialize, Debug)]
             pub struct Artist {
                 pub uri: String,
-                pub url: String,
+                pub url: Option<String>,
                 pub name: String,
             }
         >,

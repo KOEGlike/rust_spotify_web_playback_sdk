@@ -174,7 +174,7 @@ pub mod state_change {
                             pub restricted:bool,
                             pub selected: i32,
                         },
-                    pub signal_ids: Vec<String>,
+                    pub signal_ids: Option<Vec<String>>,
                 },
             pub playback_id:String,
             pub playback_quality: String,

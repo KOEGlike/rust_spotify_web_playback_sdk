@@ -6,11 +6,14 @@ pub fn from_js<T>(js_value: wasm_bindgen::JsValue) -> T
 where
     T: serde::de::DeserializeOwned,
 {
-    match serde_wasm_bindgen::from_value(js_value) {
+    match serde_wasm_bindgen::from_value(js_value.clone()) {
         Ok(value) => value,
         Err(e) => {
             panic!(
-                "This is a bug, submit an issue.Error deserializing JS value: {:?}",
+                "This is a bug, submit an issue.Error deserializing JS-value,
+                Js-Value: {:?}
+                Error: {:?}",
+                js_value,
                 e.to_string()
             )
         }

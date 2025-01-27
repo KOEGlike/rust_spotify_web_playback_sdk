@@ -9,7 +9,7 @@ Because you only can have only 1 player per page, so there is no need for an exp
 
 ### [Docs](https://docs.rs/rust_spotify_web_playback_sdk/latest/) | [Repo](https://github.com/KOEGlike/rust_spotify_web_playback_sdk) | [Crates.io](https://crates.io/crates/rust_spotify_web_playback_sdk)
 
-## Example in leptos
+## Example in leptos 6
 
 ```rust
 use leptos::*;

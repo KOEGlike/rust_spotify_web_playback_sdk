@@ -1,4 +1,6 @@
-# A wrapper around the Spotify web playback SDK for targeting wasm with rust
+# rust_spotify_web_playback_sdk
+
+A wrapper around the Spotify web playback SDK for targeting wasm with rust. So you can integrate Spotify to your rust wasm web app seamlessly 
 
 ## All the methods now are functions
 

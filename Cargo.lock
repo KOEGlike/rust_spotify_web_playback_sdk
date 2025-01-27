@@ -92,7 +92,7 @@ dependencies = [
 
 [[package]]
 name = "rust_spotify_web_playback_sdk"
-version = "0.2.5"
+version = "0.2.6"
 dependencies = [
  "js-sys",
  "nestify",
@@ -117,7 +117,7 @@ dependencies = [
 
 [[package]]
 name = "rust_spotify_web_playback_sdk_macro"
-version = "0.2.5"
+version = "0.2.6"
 dependencies = [
  "proc-macro2",
  "quote",

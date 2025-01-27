@@ -198,7 +198,7 @@ pub mod state_change {
                     pub undefined:Option<Vec<String>>
                 },
             pub shuffle: bool,
-            pub shuffle_mode: i8,
+            pub shuffle_mode: Option<i8>,
             pub timestamp: i64,
             pub track_window:
                 #[derive(Serialize, Deserialize, Debug)]

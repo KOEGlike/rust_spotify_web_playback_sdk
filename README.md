@@ -1,4 +1,6 @@
-# A wrapper around the Spotify web playback SDK for targeting wasm with rust
+# rust_spotify_web_playback_sdk
+
+A wrapper around the Spotify web playback SDK for targeting wasm with rust. So you can integrate Spotify to your rust wasm web app seamlessly 
 
 ## All the methods now are functions
 
@@ -7,7 +9,7 @@ Because you only can have only 1 player per page, so there is no need for an exp
 
 ### [Docs](https://docs.rs/rust_spotify_web_playback_sdk/latest/) | [Repo](https://github.com/KOEGlike/rust_spotify_web_playback_sdk) | [Crates.io](https://crates.io/crates/rust_spotify_web_playback_sdk)
 
-## Example in leptos
+## Example in leptos 6
 
 ```rust
 use leptos::*;
